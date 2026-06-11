@@ -144,19 +144,58 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
     let moved = 0;
     let lastX = 0;
     let lastY = 0;
+    // Multi-pointer tracking for touch pinch-zoom.
+    const pointers = new Map<number, { x: number; y: number }>();
+    let pinchDist = 0;
+
+    const pinchInfo = () => {
+      const [a, b] = [...pointers.values()];
+      return {
+        dist: Math.hypot(a.x - b.x, a.y - b.y),
+        midX: (a.x + b.x) / 2,
+        midY: (a.y + b.y) / 2,
+      };
+    };
+
     const onPointerDown = (e: PointerEvent) => {
-      if (e.button !== 0) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      gsap.killTweensOf(cam.current);
+      if (pointers.size === 2) {
+        dragging = false;
+        pinchDist = pinchInfo().dist;
+        return;
+      }
       dragging = true;
       moved = 0;
       lastX = e.clientX;
       lastY = e.clientY;
-      gsap.killTweensOf(cam.current);
       // Deliberately NO setPointerCapture here: capturing on pointerdown
       // retargets the compatibility mouseup to the viewport, which kills the
       // `click` event for every node inside the canvas. Capture starts only
       // once movement proves this is a drag, not a click.
     };
     const onPointerMove = (e: PointerEvent) => {
+      if (pointers.has(e.pointerId)) {
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+      if (pointers.size >= 2) {
+        // Pinch: zoom around the midpoint, keeping it fixed in world space.
+        const { dist, midX, midY } = pinchInfo();
+        if (pinchDist > 0) {
+          const { x, y, s } = cam.current;
+          const ns = clamp(s * (dist / pinchDist), MIN_SCALE, MAX_SCALE);
+          const rect = vp.getBoundingClientRect();
+          const cx = midX - rect.left;
+          const cy = midY - rect.top;
+          cam.current.s = ns;
+          cam.current.x = cx - ((cx - x) / s) * ns;
+          cam.current.y = cy - ((cy - y) / s) * ns;
+          apply();
+        }
+        pinchDist = dist;
+        return;
+      }
       if (!dragging) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
@@ -173,6 +212,8 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
       apply();
     };
     const onPointerUp = (e: PointerEvent) => {
+      pointers.delete(e.pointerId);
+      pinchDist = 0;
       dragging = false;
       if (captured) {
         captured = false;

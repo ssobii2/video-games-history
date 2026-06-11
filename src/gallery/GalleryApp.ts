@@ -410,6 +410,15 @@ export class GalleryApp {
     });
   }
 
+  /** External walk control — on-screen ◀ ▶ buttons (touch) mirror the arrow keys. */
+  setMove(dir: -1 | 0 | 1): void {
+    if (this.inspecting || this.transitioning) {
+      this.moveDir = 0;
+      return;
+    }
+    this.moveDir = dir;
+  }
+
   exitInspect(): void {
     if (!this.inspecting || !this.savedPose) return;
     const pose = this.savedPose;

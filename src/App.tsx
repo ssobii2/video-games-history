@@ -5,6 +5,7 @@ import { loadMuseum } from './api/client';
 import { Timeline } from './timeline/Timeline';
 import { Placard } from './placard/Placard';
 import { Gallery } from './gallery/Gallery';
+import { SearchPalette } from './search/SearchPalette';
 
 type View = { mode: 'timeline' } | { mode: 'gallery'; era: Era };
 
@@ -12,10 +13,22 @@ export default function App() {
   const [data, setData] = useState<MuseumData | null>(null);
   const [view, setView] = useState<View>({ mode: 'timeline' });
   const [placardItem, setPlacardItem] = useState<MuseumItem | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const transitionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadMuseum().then(setData);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen((open) => !open);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   /** Era doorway: a color wash with the era's name, then the view swaps under it. */
@@ -67,9 +80,14 @@ export default function App() {
             <h1>
               The Museum of <span>Video Game History</span>
             </h1>
-            <span className={`source-badge ${data.source}`}>
-              {data.source === 'database' ? '⛁ Wikipedia-enriched archive' : '◈ curated catalog'}
-            </span>
+            <div className="masthead-right">
+              <button className="search-trigger" onClick={() => setSearchOpen(true)}>
+                ⌕ Search <kbd>Ctrl K</kbd>
+              </button>
+              <span className={`source-badge ${data.source}`}>
+                {data.source === 'database' ? '⛁ Wikipedia-enriched archive' : '◈ curated catalog'}
+              </span>
+            </div>
           </header>
           <Timeline data={data} onSelect={setPlacardItem} onEnterEra={enterEra} />
         </>
@@ -89,6 +107,24 @@ export default function App() {
           era={eraOf(placardItem)}
           onClose={() => setPlacardItem(null)}
           onEnterEra={enterEra}
+        />
+      )}
+
+      {searchOpen && (
+        <SearchPalette
+          items={data.items}
+          eras={data.eras}
+          onPick={(item) => {
+            // Search always lands on the placard; from a gallery, step out first.
+            if (view.mode === 'gallery') {
+              const era = eraOf(item);
+              transitionTo({ mode: 'timeline' }, era);
+              window.setTimeout(() => setPlacardItem(item), 900);
+            } else {
+              setPlacardItem(item);
+            }
+          }}
+          onClose={() => setSearchOpen(false)}
         />
       )}
 
