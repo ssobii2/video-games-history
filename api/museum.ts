@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getDb, type ItemRow } from './_lib/db';
-import { ERAS, catalogData } from '../shared/catalog/index';
-import type { MuseumData, MuseumItem } from '../shared/types';
+import { getDb, type ItemRow } from './_lib/db.js';
+import { ERAS, catalogData } from '../shared/catalog/index.js';
+import type { MuseumData, MuseumItem } from '../shared/types.js';
 
 /**
  * GET /api/museum — the only data endpoint the frontend reads.

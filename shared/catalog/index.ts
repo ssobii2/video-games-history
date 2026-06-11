@@ -1,7 +1,7 @@
-import type { Era, MuseumData, MuseumItem } from '../types';
-import { ERAS, ERA_BY_SLUG } from './eras';
-import { CONSOLES } from './consoles';
-import { GAMES } from './games';
+import type { Era, MuseumData, MuseumItem } from '../types.js';
+import { ERAS, ERA_BY_SLUG } from './eras.js';
+import { CONSOLES } from './consoles.js';
+import { GAMES } from './games.js';
 
 export { ERAS, ERA_BY_SLUG, CONSOLES, GAMES };
 export type { Era, MuseumItem, MuseumData };

@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ensureSchema, getDb } from './_lib/db';
-import { harvestItem } from './_lib/wikipedia';
-import { ALL_ITEMS, normalizeName } from '../shared/catalog/index';
-import type { MuseumItem } from '../shared/types';
+import { ensureSchema, getDb } from './_lib/db.js';
+import { harvestItem } from './_lib/wikipedia.js';
+import { ALL_ITEMS, normalizeName } from '../shared/catalog/index.js';
+import type { MuseumItem } from '../shared/types.js';
 
 const CONCURRENCY = 4;
 

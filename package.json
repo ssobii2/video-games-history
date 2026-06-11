@@ -2,6 +2,7 @@
   "name": "video-game-museum",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Interactive 3D Museum of Video Game History — infinite canvas timeline, Wikipedia-enriched archive, Three.js era galleries",
   "scripts": {
     "dev": "vite",
