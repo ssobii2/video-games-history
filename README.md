@@ -1,5 +1,7 @@
 # 🕹️ The Museum of Video Game History
 
+**Live:** https://video-games-history-ssobii2s-projects.vercel.app
+
 An interactive 3D museum of ~60 years of video game history that runs entirely in the
 browser — an immersive alternative to wiki rabbit holes.
 
@@ -9,7 +11,11 @@ browser — an immersive alternative to wiki rabbit holes.
   gallery call-to-action.
 - **3D era galleries** (Three.js): six themed first-person rooms — neon arcade, 8-bit living
   room, 16-bit den, fog-and-checkerboard 3D revolution, HD showroom, modern flagship store.
-  Walk with ←/→, look with the mouse, click any display to glide into an inspection view.
+  Walk with ←/→ (or on-screen buttons), look with the mouse, click any display to glide into
+  an inspection view. Each room plays its own synthesized ambience (mute toggle in the HUD).
+- **Search** (Ctrl/⌘+K): finds consoles and games by name, regional alias ("mega drive",
+  "famicom"), or maker, and opens their placards.
+- **Touch support**: pinch-zoom and drag on the timeline, on-screen walk buttons in galleries.
 - **Wikipedia data pipeline** (Vercel serverless + Neon Postgres): server-side harvesting of
   article summaries and **license-checked** Wikimedia imagery, with regional-naming dedup
   (Genesis/Mega Drive, NES/Famicom, TurboGrafx-16/PC Engine) and disambiguation handling.
