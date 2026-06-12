@@ -111,7 +111,6 @@ async function resolveSummary(
 interface ImageInfo {
   url: string;
   license: string;
-  nonFree: boolean;
 }
 
 /** Commons imageinfo + extmetadata for a File: title. Null if unavailable. */
@@ -133,12 +132,7 @@ async function fetchImageInfo(fileTitle: string): Promise<ImageInfo | null> {
   if (!info?.url) return null;
   const meta = info.extmetadata ?? {};
   const license: string = meta.LicenseShortName?.value ?? meta.License?.value ?? '';
-  const nonFreeFlag = String(meta.NonFree?.value ?? '').trim();
-  const nonFree =
-    nonFreeFlag === '1' ||
-    nonFreeFlag.toLowerCase() === 'true' ||
-    /non-?free|fair use|copyright/i.test(license);
-  return { url: info.thumburl ?? info.url, license, nonFree };
+  return { url: info.thumburl ?? info.url, license };
 }
 
 /** File name heuristics: skip icons, logos, maps, UI chrome. */
@@ -188,9 +182,75 @@ async function fetchLeadImageFile(title: string): Promise<string | null> {
 const MAX_LICENSE_LOOKUPS = 6;
 
 /**
- * Copyright guardrail: pick a freely licensed image for an article.
- * Lead image first; if restricted/missing, walk other article images;
- * if nothing free is found, signal a stylized placeholder.
+ * Pull the infobox image/cover/logo file name from an article's section-0
+ * wikitext. This is the canonical representative image and, unlike the REST
+ * summary, includes non-free media (most game box art / logos).
+ */
+async function fetchInfoboxImageFile(title: string): Promise<string | null> {
+  const params = new URLSearchParams({
+    action: 'parse',
+    page: title,
+    prop: 'wikitext',
+    section: '0',
+    format: 'json',
+    formatversion: '2',
+    redirects: '1',
+  });
+  const res = await wikiFetch(`${ACTION_BASE}?${params}`);
+  if (!res.ok) return null;
+  const data: any = await res.json();
+  let wt: string = data?.parse?.wikitext ?? '';
+  if (!wt) return null;
+  wt = wt.replace(/<!--[\s\S]*?-->/g, ''); // strip HTML comments (e.g. "do not replace cover" notes)
+  const m = wt.match(/\|\s*(?:image|cover|logo)\s*=\s*([^\n|]+?)\s*(?:\n|\|)/i);
+  if (!m) return null;
+  const file = m[1]
+    .trim()
+    .replace(/^\[\[/, '')
+    .replace(/\]\]$/, '')
+    .replace(/^File:/i, '')
+    .split('|')[0]
+    .trim();
+  return file || null;
+}
+
+/** Resolve a bare File name (no "File:" prefix) to a hosted thumbnail URL, incl. non-free media. */
+async function resolveFileUrl(fileName: string): Promise<string | null> {
+  const params = new URLSearchParams({
+    action: 'query',
+    titles: `File:${fileName.replace(/ /g, '_')}`,
+    prop: 'imageinfo',
+    iiprop: 'url',
+    iiurlwidth: '600',
+    format: 'json',
+    formatversion: '2',
+    origin: '*',
+  });
+  const res = await wikiFetch(`${ACTION_BASE}?${params}`);
+  if (!res.ok) return null;
+  const data: any = await res.json();
+  const info = data?.query?.pages?.[0]?.imageinfo?.[0];
+  if (!info?.url) return null;
+  return info.thumburl ?? info.url;
+}
+
+/** The canonical infobox image (incl. non-free box art / logos), or null if none. */
+async function fetchInfoboxImage(title: string): Promise<WikiImage | null> {
+  try {
+    const file = await fetchInfoboxImageFile(title);
+    if (!file) return null;
+    const url = await resolveFileUrl(file);
+    if (!url) return null;
+    return { url, license: 'Wikipedia (infobox)', status: 'ok' };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Pick the first resolvable image for an article, regardless of license.
+ * Lead image first; walk other article images if lead is missing;
+ * signal placeholder only when no image can be resolved.
  */
 async function pickFreeImage(articleTitle: string): Promise<WikiImage> {
   const candidates: string[] = [];
@@ -209,8 +269,8 @@ async function pickFreeImage(articleTitle: string): Promise<WikiImage> {
     lookups++;
     try {
       const info = await fetchImageInfo(file);
-      if (info && !info.nonFree) {
-        return { url: info.url, license: info.license || 'free', status: 'ok' };
+      if (info) {
+        return { url: info.url, license: info.license || 'Wikipedia', status: 'ok' };
       }
     } catch {
       // one bad file never aborts the walk
@@ -233,7 +293,14 @@ export async function harvestItem(entry: {
         error: `no article resolved for "${entry.wikiTitle}"`,
       };
     }
-    const image = await pickFreeImage(summary.title);
+    let image: WikiImage;
+    if (summary.thumbnailUrl) {
+      image = { url: summary.thumbnailUrl, license: 'Wikipedia', status: 'ok' };
+    } else {
+      // No free lead image (typical for non-free box art): use the real infobox
+      // image; only if that fails too do we walk free article images.
+      image = (await fetchInfoboxImage(summary.title)) ?? (await pickFreeImage(summary.title));
+    }
     return {
       resolvedTitle: summary.title,
       summary: summary.extract || undefined,

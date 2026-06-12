@@ -42,7 +42,7 @@ export function ItemArt({ item, era, width, height, className }: Props) {
       src={item.imageUrl}
       alt={item.name}
       className={className}
-      style={{ width, height, objectFit: 'contain' }}
+      style={{ width, height, objectFit: 'contain', background: '#f0f0f2' }}
       loading="lazy"
       crossOrigin="anonymous"
       onError={() => setFailed(true)}
