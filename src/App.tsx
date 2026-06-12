@@ -6,15 +6,69 @@ import { Timeline } from './timeline/Timeline';
 import { Placard } from './placard/Placard';
 import { Gallery } from './gallery/Gallery';
 import { SearchPalette } from './search/SearchPalette';
+import { useIsBlockedDevice, DesktopGate } from './DesktopGate';
+import { MusicEngine } from './audio/ambience';
 
 type View = { mode: 'timeline' } | { mode: 'gallery'; era: Era };
 
 export default function App() {
+  const blocked = useIsBlockedDevice();
   const [data, setData] = useState<MuseumData | null>(null);
   const [view, setView] = useState<View>({ mode: 'timeline' });
   const [placardItem, setPlacardItem] = useState<MuseumItem | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const transitionRef = useRef<HTMLDivElement>(null);
+
+  // Single music engine instance for the lifetime of the app
+  const musicRef = useRef<MusicEngine | null>(null);
+  if (!musicRef.current) musicRef.current = new MusicEngine();
+  const [muted, setMuted] = useState(() => musicRef.current!.isMuted);
+
+  // First-gesture autoplay: browsers block audio until a user gesture
+  useEffect(() => {
+    let gestured = false;
+    const onGesture = () => {
+      if (gestured) return;
+      gestured = true;
+      // Only auto-start lobby if we're still on the timeline
+      setView((v) => {
+        if (v.mode === 'timeline') {
+          musicRef.current?.play('lobby');
+        }
+        return v;
+      });
+    };
+    window.addEventListener('pointerdown', onGesture, { once: true });
+    window.addEventListener('keydown', onGesture, { once: true });
+    window.addEventListener('wheel', onGesture, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', onGesture);
+      window.removeEventListener('keydown', onGesture);
+      window.removeEventListener('wheel', onGesture);
+    };
+  }, []);
+
+  // Drive track by view — crossfades on every timeline↔gallery transition
+  useEffect(() => {
+    if (view.mode === 'gallery') {
+      musicRef.current?.play(view.era.galleryTheme);
+    } else {
+      musicRef.current?.play('lobby');
+    }
+  }, [view]);
+
+  // Stop engine on unmount
+  useEffect(() => {
+    return () => musicRef.current?.stop();
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setMuted((m) => {
+      const next = !m;
+      musicRef.current?.setMuted(next);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     loadMuseum().then(setData);
@@ -61,6 +115,8 @@ export default function App() {
     if (view.mode === 'gallery') transitionTo({ mode: 'timeline' }, view.era);
   }, [view, transitionTo]);
 
+  if (blocked) return <DesktopGate />;
+
   if (!data) {
     return (
       <div className="boot-splash">
@@ -81,6 +137,9 @@ export default function App() {
               The Museum of <span>Video Game History</span>
             </h1>
             <div className="masthead-right">
+              <button className="masthead-mute" onClick={toggleMute} aria-label={muted ? 'Unmute music' : 'Mute music'}>
+                {muted ? '🔇' : '🔊'}
+              </button>
               <button className="search-trigger" onClick={() => setSearchOpen(true)}>
                 ⌕ Search <kbd>Ctrl K</kbd>
               </button>
@@ -98,6 +157,8 @@ export default function App() {
           era={view.era}
           items={data.items.filter((i) => i.era === view.era.slug)}
           onExit={exitToTimeline}
+          muted={muted}
+          onToggleMute={toggleMute}
         />
       )}
 
