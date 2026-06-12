@@ -3,25 +3,25 @@ import gsap from 'gsap';
 import type { Era, MuseumItem } from '../types';
 import { GalleryApp } from './GalleryApp';
 import { ItemArt } from '../art/ItemArt';
-import { AmbienceEngine } from '../audio/ambience';
 
 interface Props {
   era: Era;
   items: MuseumItem[];
   onExit: () => void;
+  muted: boolean;
+  onToggleMute: () => void;
 }
 
 /**
  * Mounts the Three.js engine and layers the HTML chrome over it: era HUD,
- * exit button, and the inspection panel that slides in when the camera
- * finishes its glide into a display.
+ * exit button, crosshair, prompt, and the inspection panel that slides in
+ * when the camera finishes its glide into a display.
  */
-export function Gallery({ era, items, onExit }: Props) {
+export function Gallery({ era, items, onExit, muted, onToggleMute }: Props) {
   const mountRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<GalleryApp | null>(null);
-  const ambienceRef = useRef<AmbienceEngine | null>(null);
   const [inspected, setInspected] = useState<MuseumItem | null>(null);
-  const [muted, setMuted] = useState(() => new AmbienceEngine().isMuted);
+  const [locked, setLocked] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,12 +30,9 @@ export function Gallery({ era, items, onExit }: Props) {
     const app = new GalleryApp(mount, era, items, {
       onInspect: (item) => setInspected(item),
       onInspectClosed: () => setInspected(null),
+      onLockChange: (l) => setLocked(l),
     });
     appRef.current = app;
-    // Entering a gallery is always user-gesture-initiated, so audio may start.
-    const ambience = new AmbienceEngine();
-    ambience.start(era.galleryTheme);
-    ambienceRef.current = ambience;
     const onResize = () => app.resize();
     window.addEventListener('resize', onResize);
     const onKey = (e: KeyboardEvent) => {
@@ -45,18 +42,10 @@ export function Gallery({ era, items, onExit }: Props) {
     return () => {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('keydown', onKey);
-      ambience.stop();
-      ambienceRef.current = null;
       app.dispose();
       appRef.current = null;
     };
   }, [era, items]);
-
-  const toggleMute = () => {
-    const next = !muted;
-    setMuted(next);
-    ambienceRef.current?.setMuted(next);
-  };
 
   useEffect(() => {
     if (inspected && panelRef.current) {
@@ -93,40 +82,22 @@ export function Gallery({ era, items, onExit }: Props) {
         </div>
         <button
           className="hud-mute"
-          onClick={toggleMute}
-          aria-label={muted ? 'Unmute ambience' : 'Mute ambience'}
-          title={muted ? 'Unmute ambience' : 'Mute ambience'}
+          onClick={onToggleMute}
+          aria-label={muted ? 'Unmute music' : 'Mute music'}
+          title={muted ? 'Unmute music' : 'Mute music'}
         >
           {muted ? '🔇' : '🔊'}
         </button>
       </header>
 
-      {!inspected && (
-        <footer className="gallery-controls">
-          <button
-            className="walk-btn"
-            aria-label="Walk left"
-            onPointerDown={() => appRef.current?.setMove(-1)}
-            onPointerUp={() => appRef.current?.setMove(0)}
-            onPointerLeave={() => appRef.current?.setMove(0)}
-            onPointerCancel={() => appRef.current?.setMove(0)}
-          >
-            ◀
-          </button>
-          <span className="controls-hint">
-            <kbd>←</kbd> <kbd>→</kbd> walk the hall · move mouse to look · click a display to inspect
-          </span>
-          <button
-            className="walk-btn"
-            aria-label="Walk right"
-            onPointerDown={() => appRef.current?.setMove(1)}
-            onPointerUp={() => appRef.current?.setMove(0)}
-            onPointerLeave={() => appRef.current?.setMove(0)}
-            onPointerCancel={() => appRef.current?.setMove(0)}
-          >
-            ▶
-          </button>
-        </footer>
+      {/* Crosshair — visible when locked and not inspecting */}
+      {locked && !inspected && <div className="gallery-crosshair" aria-hidden="true">+</div>}
+
+      {/* Prompt — visible when NOT locked and NOT inspecting */}
+      {!locked && !inspected && (
+        <div className="gallery-prompt" aria-live="polite">
+          Click to look around · WASD to move · click a frame to inspect · Esc to step back
+        </div>
       )}
 
       {inspected && (

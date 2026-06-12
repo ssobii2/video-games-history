@@ -8,6 +8,7 @@ import { placeholderCanvas } from '../art/placeholder';
 export interface GalleryCallbacks {
   onInspect: (item: MuseumItem) => void;
   onInspectClosed: () => void;
+  onLockChange?: (locked: boolean) => void;
 }
 
 interface Display {
@@ -24,11 +25,13 @@ const HALL_H = 4.6;
 const SPACING = 4.6;
 const EYE_Y = 1.7;
 const WALK_SPEED = 5.2;
+const SENS = 0.0022;
+const MARGIN = 0.6;
 
 /**
  * One shared first-person gallery engine; the era themes do the set dressing.
- * Rail navigation: ←/→ (or A/D) walk the hall, mouse pans the view, click a
- * display to glide into inspection. ACES tone mapping + PCF soft shadows.
+ * FPS controls: pointer-lock + WASD to move, click frame to inspect.
+ * ACES tone mapping + PCF soft shadows.
  */
 export class GalleryApp {
   private renderer: THREE.WebGLRenderer;
@@ -40,12 +43,13 @@ export class GalleryApp {
   private pmrem?: THREE.PMREMGenerator;
   private hallLen: number;
 
-  private yaw = 0;
+  // FPS state
+  private yaw = -Math.PI / 2; // faces +X (hall long axis)
   private pitch = 0;
-  private targetYaw = 0;
-  private targetPitch = 0;
-  private moveDir = 0;
   private camX: number;
+  private camZ = 0;
+  private keys = new Set<string>();
+  private locked = false;
   private inspecting: Display | null = null;
   private transitioning = false;
   private savedPose: { pos: THREE.Vector3; yaw: number; pitch: number } | null = null;
@@ -84,6 +88,7 @@ export class GalleryApp {
     );
     this.camX = -this.hallLen / 2 + 2.5;
     this.camera.position.set(this.camX, EYE_Y, 0);
+    this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
 
     this.scene.fog = new THREE.FogExp2(this.theme.fog.color, this.theme.fog.density);
     this.scene.background = new THREE.Color(this.theme.fog.color);
@@ -99,7 +104,7 @@ export class GalleryApp {
     this.theme.dress(this.scene, this.hallLen, HALL_W, HALL_H);
     this.bindInput();
 
-    // Dolly in from the doorway.
+    // Dolly in from the doorway along X.
     this.transitioning = true;
     gsap.fromTo(
       this,
@@ -195,7 +200,8 @@ export class GalleryApp {
       const side = i % 2 === 0 ? -1 : 1; // -1 = north wall
       const slot = Math.floor(i / 2);
       const x = -this.hallLen / 2 + 4.5 + slot * SPACING;
-      const z = side * (HALL_W / 2 - (item.kind === 'console' ? 1.05 : 0.12));
+      // All items hang on the wall (no pedestal offset).
+      const z = side * (HALL_W / 2 - 0.12);
       const normal = new THREE.Vector3(0, 0, -side);
 
       const group = new THREE.Group();
@@ -203,41 +209,23 @@ export class GalleryApp {
       group.rotation.y = side === -1 ? 0 : Math.PI;
 
       const hitMeshes: THREE.Mesh[] = [];
-      let art: THREE.Mesh;
 
-      if (item.kind === 'console') {
-        // Pedestal piece: plinth + upright art card, museum-style.
-        const plinth = new THREE.Mesh(
-          new THREE.BoxGeometry(1.5, 1.05, 0.95),
-          new THREE.MeshStandardMaterial({ color: this.theme.pedestalColor, roughness: 0.4, metalness: 0.2 })
-        );
-        plinth.position.y = 0.525;
-        plinth.castShadow = true;
-        plinth.receiveShadow = true;
-        group.add(plinth);
-        art = this.makeArtPlane(item, era, loader, 1.45, 1.15);
-        art.position.set(0, 1.75, 0);
-        art.rotation.x = -0.06;
-        group.add(art);
-        hitMeshes.push(plinth, art);
-      } else {
-        // Framed wall piece.
-        const frame = new THREE.Mesh(
-          new THREE.BoxGeometry(2.0, 2.0, 0.09),
-          new THREE.MeshStandardMaterial({ color: this.theme.frameColor, roughness: 0.5, metalness: 0.3 })
-        );
-        frame.position.set(0, 2.15, -0.05);
-        frame.castShadow = true;
-        group.add(frame);
-        art = this.makeArtPlane(item, era, loader, 1.78, 1.78);
-        art.position.set(0, 2.15, 0.02);
-        group.add(art);
-        hitMeshes.push(frame, art);
-      }
+      // Framed wall piece — applied to every item.
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(2.0, 2.0, 0.09),
+        new THREE.MeshStandardMaterial({ color: this.theme.frameColor, roughness: 0.5, metalness: 0.3 })
+      );
+      frame.position.set(0, 2.15, -0.05);
+      frame.castShadow = true;
+      group.add(frame);
+      const art = this.makeArtPlane(item, era, loader, 1.78, 1.78);
+      art.position.set(0, 2.15, 0.02);
+      group.add(art);
+      hitMeshes.push(frame, art);
 
+      // Label — wall-mounted position for every item.
       const label = this.makeLabelPlate(item);
-      label.position.set(0, item.kind === 'console' ? 1.06 : 1.0, item.kind === 'console' ? 0.49 : 0.03);
-      if (item.kind === 'console') label.rotation.x = -0.35;
+      label.position.set(0, 1.0, 0.03);
       group.add(label);
       hitMeshes.push(label);
 
@@ -270,13 +258,38 @@ export class GalleryApp {
       mesh.scale.set(w, w / aspect, 1);
     };
 
+    // Flatten any transparency onto a light "mat" so dark/transparent logos
+    // (e.g. The Last of Us) stay visible instead of vanishing into the frame.
+    // Opaque box art / photos fully cover the mat, so this is a no-op for them.
+    const matted = (img: HTMLImageElement): THREE.Texture => {
+      const w = img.naturalWidth || img.width || 512;
+      const h = img.naturalHeight || img.height || 512;
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const cx = canvas.getContext('2d')!;
+      cx.fillStyle = '#f0f0f2';
+      cx.fillRect(0, 0, w, h);
+      cx.drawImage(img, 0, 0, w, h);
+      return new THREE.CanvasTexture(canvas);
+    };
+
     const usePlaceholder = () => {
       if (this.disposed) return;
       applyTexture(new THREE.CanvasTexture(placeholderCanvas(item, era, 512, 512)));
     };
 
     if (item.imageUrl && item.imageStatus === 'ok') {
-      loader.load(item.imageUrl, (tex) => !this.disposed && applyTexture(tex), undefined, usePlaceholder);
+      loader.load(
+        item.imageUrl,
+        (tex) => {
+          if (this.disposed) return;
+          const img = tex.image as HTMLImageElement;
+          applyTexture(img ? matted(img) : tex);
+        },
+        undefined,
+        usePlaceholder
+      );
       usePlaceholder(); // visible immediately; swapped when the photo arrives
     } else {
       usePlaceholder();
@@ -320,51 +333,66 @@ export class GalleryApp {
 
   private bindInput(): void {
     const { signal } = this.abort;
+
+    // Pointer lock — request on click when not locked and not busy.
+    this.renderer.domElement.addEventListener(
+      'click',
+      () => {
+        if (this.inspecting || this.transitioning) return;
+        if (!this.locked) {
+          this.renderer.domElement.requestPointerLock();
+          return;
+        }
+        // Locked: raycast from screen center to inspect a frame.
+        this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+        const all = this.displays.flatMap((d) => d.hitMeshes);
+        const hits = this.raycaster.intersectObjects(all, false);
+        if (hits.length > 0) {
+          const display = this.displays.find((d) => d.hitMeshes.includes(hits[0].object as THREE.Mesh));
+          if (display) {
+            this.enterInspect(display);
+          }
+        }
+      },
+      { signal }
+    );
+
+    // Track pointer lock state.
+    document.addEventListener(
+      'pointerlockchange',
+      () => {
+        this.locked = document.pointerLockElement === this.renderer.domElement;
+        this.callbacks.onLockChange?.(this.locked);
+      },
+      { signal }
+    );
+
+    // Mouse look — raw deltas when locked.
+    document.addEventListener(
+      'mousemove',
+      (e) => {
+        if (!this.locked || this.inspecting) return;
+        this.yaw -= e.movementX * SENS;
+        this.pitch -= e.movementY * SENS;
+        this.pitch = THREE.MathUtils.clamp(this.pitch, -1.45, 1.45);
+      },
+      { signal }
+    );
+
+    // WASD + arrow keys — track held keys.
+    const MOVE_KEYS = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']);
     window.addEventListener(
       'keydown',
       (e) => {
-        if (this.inspecting || this.transitioning) return;
-        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') this.moveDir = -1;
-        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.moveDir = 1;
+        const k = e.key.toLowerCase();
+        if (MOVE_KEYS.has(k)) this.keys.add(k);
       },
       { signal }
     );
     window.addEventListener(
       'keyup',
       (e) => {
-        if (['ArrowLeft', 'a', 'A'].includes(e.key) && this.moveDir === -1) this.moveDir = 0;
-        if (['ArrowRight', 'd', 'D'].includes(e.key) && this.moveDir === 1) this.moveDir = 0;
-      },
-      { signal }
-    );
-    this.container.addEventListener(
-      'pointermove',
-      (e) => {
-        if (this.inspecting || this.transitioning) return;
-        const rect = this.container.getBoundingClientRect();
-        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-        this.targetYaw = -nx * 1.55;
-        this.targetPitch = -ny * 0.5;
-      },
-      { signal }
-    );
-    this.container.addEventListener(
-      'click',
-      (e) => {
-        if (this.inspecting || this.transitioning) return;
-        const rect = this.container.getBoundingClientRect();
-        const pointer = new THREE.Vector2(
-          ((e.clientX - rect.left) / rect.width) * 2 - 1,
-          -((e.clientY - rect.top) / rect.height) * 2 + 1
-        );
-        this.raycaster.setFromCamera(pointer, this.camera);
-        const all = this.displays.flatMap((d) => d.hitMeshes);
-        const hits = this.raycaster.intersectObjects(all, false);
-        if (hits.length > 0) {
-          const display = this.displays.find((d) => d.hitMeshes.includes(hits[0].object as THREE.Mesh));
-          if (display) this.enterInspect(display);
-        }
+        this.keys.delete(e.key.toLowerCase());
       },
       { signal }
     );
@@ -375,7 +403,7 @@ export class GalleryApp {
   private enterInspect(display: Display): void {
     this.inspecting = display;
     this.transitioning = true;
-    this.moveDir = 0;
+    this.keys.clear();
     this.savedPose = {
       pos: this.camera.position.clone(),
       yaw: this.yaw,
@@ -404,19 +432,11 @@ export class GalleryApp {
         this.camera.quaternion.slerpQuaternions(startQuat, endQuat, state.t);
       },
       onComplete: () => {
+        document.exitPointerLock();
         this.transitioning = false;
         this.callbacks.onInspect(display.item);
       },
     });
-  }
-
-  /** External walk control — on-screen ◀ ▶ buttons (touch) mirror the arrow keys. */
-  setMove(dir: -1 | 0 | 1): void {
-    if (this.inspecting || this.transitioning) {
-      this.moveDir = 0;
-      return;
-    }
-    this.moveDir = dir;
   }
 
   exitInspect(): void {
@@ -428,7 +448,8 @@ export class GalleryApp {
     const startQuat = this.camera.quaternion.clone();
     const probe = this.camera.clone();
     probe.position.copy(pose.pos);
-    probe.rotation.set(pose.pitch, -Math.PI / 2 + pose.yaw, 0, 'YXZ');
+    // Reconstruct end quaternion using the YXZ convention directly.
+    probe.rotation.set(pose.pitch, pose.yaw, 0, 'YXZ');
     const endQuat = probe.quaternion.clone();
 
     const state = { t: 0 };
@@ -442,12 +463,23 @@ export class GalleryApp {
       },
       onComplete: () => {
         this.camX = pose.pos.x;
+        this.camZ = pose.pos.z;
         this.yaw = pose.yaw;
         this.pitch = pose.pitch;
         this.inspecting = null;
         this.savedPose = null;
         this.transitioning = false;
         this.callbacks.onInspectClosed();
+        // Re-request pointer lock so movement resumes (browser may block it
+        // outside a user gesture — then the prompt simply reappears).
+        try {
+          const relock = this.renderer.domElement.requestPointerLock() as unknown as
+            | Promise<void>
+            | undefined;
+          relock?.catch(() => {});
+        } catch {
+          /* relock blocked — user clicks to re-enter look mode */
+        }
       },
     });
   }
@@ -461,25 +493,41 @@ export class GalleryApp {
     const t = this.clock.elapsedTime;
 
     if (!this.inspecting && !this.transitioning) {
+      // Apply yaw/pitch from pointer-lock deltas (already updated in mousemove).
+      this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
+
+      // Derive forward/right from the camera direction (Y-flattened).
+      const fwd = new THREE.Vector3();
+      this.camera.getWorldDirection(fwd);
+      fwd.y = 0;
+      fwd.normalize();
+      const right = new THREE.Vector3().crossVectors(fwd, this.camera.up).normalize();
+
+      // Build move vector from held keys.
+      const move = new THREE.Vector3();
+      if (this.keys.has('w') || this.keys.has('arrowup')) move.add(fwd);
+      if (this.keys.has('s') || this.keys.has('arrowdown')) move.sub(fwd);
+      if (this.keys.has('d') || this.keys.has('arrowright')) move.add(right);
+      if (this.keys.has('a') || this.keys.has('arrowleft')) move.sub(right);
+      if (move.lengthSq() > 0) move.normalize();
+      move.multiplyScalar(WALK_SPEED * dt);
+
       this.camX = THREE.MathUtils.clamp(
-        this.camX + this.moveDir * WALK_SPEED * dt,
-        -this.hallLen / 2 + 1.6,
-        this.hallLen / 2 - 1.6
+        this.camX + move.x,
+        -this.hallLen / 2 + MARGIN,
+        this.hallLen / 2 - MARGIN
       );
-      // Smooth look + walk
-      this.yaw = THREE.MathUtils.lerp(this.yaw, this.targetYaw, 1 - Math.exp(-dt * 7));
-      this.pitch = THREE.MathUtils.lerp(this.pitch, this.targetPitch, 1 - Math.exp(-dt * 7));
-      this.camera.position.x = THREE.MathUtils.lerp(
-        this.camera.position.x,
-        this.camX,
-        1 - Math.exp(-dt * 9)
+      this.camZ = THREE.MathUtils.clamp(
+        this.camZ + move.z,
+        -HALL_W / 2 + MARGIN,
+        HALL_W / 2 - MARGIN
       );
-      this.camera.position.y = EYE_Y;
-      this.camera.rotation.set(this.pitch, -Math.PI / 2 + this.yaw, 0, 'YXZ');
+
+      this.camera.position.set(this.camX, EYE_Y, this.camZ);
     } else if (this.transitioning && !this.inspecting) {
-      // Entry dolly writes camX directly.
-      this.camera.position.x = this.camX;
-      this.camera.rotation.set(this.pitch, -Math.PI / 2 + this.yaw, 0, 'YXZ');
+      // Entry dolly writes camX directly along X; Z stays 0.
+      this.camera.position.set(this.camX, EYE_Y, 0);
+      this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
     }
 
     if (this.theme.flicker) {
