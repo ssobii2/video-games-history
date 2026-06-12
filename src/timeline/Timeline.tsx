@@ -8,6 +8,7 @@ import {
   titleSizeFor,
   xOfYear,
   clamp,
+  DIVE_MIN_SCALE,
   type EraBlock,
   type Lod,
   GAME_CARD_W,
@@ -98,8 +99,46 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
   const frameWorld = (duration = 1.15) =>
     frameRect(0, 0, layout.width, layout.height, duration);
 
-  const frameEra = (block: EraBlock, duration = 1.2) =>
-    frameRect(block.x - 60, block.y - 60, block.width + 120, block.height + 120, duration);
+  /**
+   * Dive into a single era. Unlike frameWorld, this guarantees the camera lands
+   * at the 'games' detail level (scale >= DIVE_MIN_SCALE) so every game card is
+   * visible the moment you arrive — wide eras no longer stop at the 'consoles'
+   * LOD with cards hidden. When the era is too big to fit at that scale, anchor
+   * its bottom-left (earliest releases + the games strip) into view instead of
+   * centering it partly off-screen, so the cards never fall below the fold.
+   */
+  const frameEra = (block: EraBlock, duration = 1.2) => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+    const wx = block.x - 60;
+    const wy = block.y - 60;
+    const ww = block.width + 120;
+    const wh = block.height + 120;
+    const pad = 0.92;
+    const fit = clamp(
+      Math.min((vp.clientWidth / ww) * pad, (vp.clientHeight / wh) * pad),
+      MIN_SCALE,
+      MAX_SCALE
+    );
+    const s = clamp(Math.max(fit, DIVE_MIN_SCALE), MIN_SCALE, MAX_SCALE);
+
+    const LEFT_PAD = 40;
+    const BOTTOM_PAD = 28;
+    const screenW = ww * s;
+    const screenH = wh * s;
+    // Center each axis when the era fits; otherwise anchor the left edge (so the
+    // era's earliest releases show) and the bottom edge (so the games strip stays
+    // on-screen — the header scrolls up rather than pushing the cards off-screen).
+    const x =
+      screenW <= vp.clientWidth
+        ? vp.clientWidth / 2 - (wx + ww / 2) * s
+        : LEFT_PAD - wx * s;
+    const y =
+      screenH <= vp.clientHeight
+        ? vp.clientHeight / 2 - (wy + wh / 2) * s
+        : vp.clientHeight - BOTTOM_PAD - (wy + wh) * s;
+    animateTo({ s, x, y }, duration);
+  };
 
   // Initial fit + input wiring.
   useEffect(() => {
@@ -144,28 +183,10 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
     let moved = 0;
     let lastX = 0;
     let lastY = 0;
-    // Multi-pointer tracking for touch pinch-zoom.
-    const pointers = new Map<number, { x: number; y: number }>();
-    let pinchDist = 0;
-
-    const pinchInfo = () => {
-      const [a, b] = [...pointers.values()];
-      return {
-        dist: Math.hypot(a.x - b.x, a.y - b.y),
-        midX: (a.x + b.x) / 2,
-        midY: (a.y + b.y) / 2,
-      };
-    };
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       gsap.killTweensOf(cam.current);
-      if (pointers.size === 2) {
-        dragging = false;
-        pinchDist = pinchInfo().dist;
-        return;
-      }
       dragging = true;
       moved = 0;
       lastX = e.clientX;
@@ -176,26 +197,6 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
       // once movement proves this is a drag, not a click.
     };
     const onPointerMove = (e: PointerEvent) => {
-      if (pointers.has(e.pointerId)) {
-        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      }
-      if (pointers.size >= 2) {
-        // Pinch: zoom around the midpoint, keeping it fixed in world space.
-        const { dist, midX, midY } = pinchInfo();
-        if (pinchDist > 0) {
-          const { x, y, s } = cam.current;
-          const ns = clamp(s * (dist / pinchDist), MIN_SCALE, MAX_SCALE);
-          const rect = vp.getBoundingClientRect();
-          const cx = midX - rect.left;
-          const cy = midY - rect.top;
-          cam.current.s = ns;
-          cam.current.x = cx - ((cx - x) / s) * ns;
-          cam.current.y = cy - ((cy - y) / s) * ns;
-          apply();
-        }
-        pinchDist = dist;
-        return;
-      }
       if (!dragging) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
@@ -212,8 +213,6 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
       apply();
     };
     const onPointerUp = (e: PointerEvent) => {
-      pointers.delete(e.pointerId);
-      pinchDist = 0;
       dragging = false;
       if (captured) {
         captured = false;

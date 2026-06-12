@@ -19,10 +19,24 @@ export function titleSizeFor(width: number, name: string): number {
   return Math.max(56, Math.min(width / 9, (width * 0.82) / (name.length * 0.92), 300));
 }
 
-/** Vertical space the rendered header actually occupies above the lanes. */
+/**
+ * Vertical space the rendered header actually occupies above the lanes.
+ *
+ * Pieces (matching CSS; .era-title-row is now flex-direction:column):
+ *   era-head padding-top              34
+ *   title line (titleSizeFor * 0.95 line-height, use full for safety)
+ *   era-years line (64px * 1.25)      80
+ *   tagline (margin-top 18 + 46*1.3)  78
+ *   description (margin-top 18 + 3 * 36*1.45 ≈ 3*52.2) = 18+157 = 175
+ *   CTA (margin-top 22 + 30px font + 32px v-padding) = 84
+ *   slack                             40
+ *
+ * Constant chrome = 34+80+78+175+84+40 = 491 → rounded to HEADER_CHROME.
+ * Budget is kept in lockstep with .era-desc (3-line clamp) in styles.css.
+ */
+const HEADER_CHROME = 491;
 export function headerHeightFor(width: number, name: string): number {
-  // padding + title + tagline + clamped 3-line description + CTA button
-  return Math.round(titleSizeFor(width, name) + 384);
+  return Math.round(titleSizeFor(width, name) + HEADER_CHROME);
 }
 export const LANE_H = 58;
 export const GAME_CARD_W = 150;
@@ -157,8 +171,17 @@ export function clamp(v: number, lo: number, hi: number): number {
 /** Zoom thresholds: what the canvas crossfades between. */
 export type Lod = 'eras' | 'consoles' | 'games';
 
+export const CONSOLES_LOD_MIN = 0.16;
+export const GAMES_LOD_MIN = 0.52;
+/**
+ * Diving into an era should always land in the 'games' detail level so the game
+ * cards render immediately, even for wide/tall eras whose natural fit-scale
+ * would otherwise stop in 'consoles'. Slightly above GAMES_LOD_MIN for margin.
+ */
+export const DIVE_MIN_SCALE = 0.54;
+
 export function lodForScale(s: number): Lod {
-  if (s < 0.16) return 'eras';
-  if (s < 0.52) return 'consoles';
+  if (s < CONSOLES_LOD_MIN) return 'eras';
+  if (s < GAMES_LOD_MIN) return 'consoles';
   return 'games';
 }
