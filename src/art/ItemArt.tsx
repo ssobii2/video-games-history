@@ -23,7 +23,8 @@ export function ItemArt({ item, era, width, height, className }: Props) {
 
   useEffect(() => {
     if (usePlaceholder && canvasRef.current) {
-      drawPlaceholder(canvasRef.current, item, era, width * 2, height * 2);
+      const r = Math.min(window.devicePixelRatio || 1, 1.5);
+      drawPlaceholder(canvasRef.current, item, era, Math.round(width * r), Math.round(height * r));
     }
   }, [usePlaceholder, item, era, width, height]);
 

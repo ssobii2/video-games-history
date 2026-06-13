@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import gsap from 'gsap';
 import type { Era, MuseumData, MuseumItem } from '../types';
 import { ItemArt } from '../art/ItemArt';
@@ -42,7 +42,6 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
   const worldRef = useRef<HTMLDivElement>(null);
   const rulerRef = useRef<HTMLDivElement>(null);
   const cam = useRef<Camera>({ x: 0, y: 0, s: MIN_SCALE });
-  const [lod, setLod] = useState<Lod>('eras');
   const lodRef = useRef<Lod>('eras');
 
   const decades = useMemo(() => {
@@ -66,7 +65,11 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
     const next = lodForScale(s);
     if (next !== lodRef.current) {
       lodRef.current = next;
-      setLod(next);
+      const vp = viewportRef.current;
+      if (vp) {
+        vp.classList.remove('lod-eras', 'lod-consoles', 'lod-games');
+        vp.classList.add(`lod-${next}`);
+      }
     }
   };
 
@@ -248,7 +251,7 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
   }, [layout]);
 
   return (
-    <div className={`timeline lod-${lod}`} ref={viewportRef}>
+    <div className="timeline lod-eras" ref={viewportRef}>
       <div className="ruler" ref={rulerRef} aria-hidden>
         {decades.map((year) => (
           <div key={year} className={`ruler-mark ${year % 10 === 0 ? 'decade' : ''}`} data-year={year}>
@@ -262,7 +265,7 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
           <EraBlockView
             key={block.era.slug}
             block={block}
-            lod={lod}
+            getLod={() => lodRef.current}
             onZoom={() => frameEra(block)}
             onSelect={onSelect}
             onEnterEra={onEnterEra}
@@ -294,14 +297,14 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
 
 interface BlockProps {
   block: EraBlock;
-  lod: Lod;
+  getLod: () => Lod;
   onZoom: () => void;
   onSelect: (item: MuseumItem) => void;
   onEnterEra: (era: Era) => void;
   eraOf: (item: MuseumItem) => Era;
 }
 
-function EraBlockView({ block, lod, onZoom, onSelect, onEnterEra, eraOf }: BlockProps) {
+function EraBlockView({ block, getLod, onZoom, onSelect, onEnterEra, eraOf }: BlockProps) {
   const { era } = block;
   const titleSize = titleSizeFor(block.width, era.name);
   return (
@@ -320,7 +323,7 @@ function EraBlockView({ block, lod, onZoom, onSelect, onEnterEra, eraOf }: Block
       }}
       onClick={(e) => {
         // At overview zoom the whole block is one big "dive in" target.
-        if (lod === 'eras') {
+        if (getLod() === 'eras') {
           e.stopPropagation();
           onZoom();
         }
