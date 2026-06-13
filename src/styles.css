@@ -1113,3 +1113,114 @@ button {
   }
 }
 
+/* ── Credits & sources ─────────────────────────────────────────────── */
+
+.credits-trigger {
+  font-family: 'VT323', monospace;
+  font-size: 17px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  color: #aab6c4;
+  background: rgba(17, 21, 28, 0.8);
+  transition: color 0.2s, border-color 0.2s;
+  pointer-events: auto;
+}
+.credits-trigger:hover {
+  color: #ff2bd6;
+  border-color: #ff2bd6;
+}
+
+.credits-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 5, 8, 0.66);
+  backdrop-filter: blur(6px);
+}
+
+.credits-card {
+  width: min(540px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7), 0 0 50px rgba(255, 43, 214, 0.08);
+  padding: 28px 30px 24px;
+  position: relative;
+}
+
+.credits-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 2;
+  font-size: 18px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--ink);
+  transition: transform 0.15s, background 0.2s;
+}
+.credits-close:hover {
+  transform: rotate(90deg);
+  background: #ff2bd6;
+}
+
+.credits-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: var(--ink);
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+}
+
+.credits-section {
+  margin-bottom: 18px;
+}
+.credits-section h3 {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #7ee0ff;
+  margin-bottom: 6px;
+}
+.credits-section p {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #c4cdd8;
+}
+
+.credits-section .credits-tracks {
+  font-size: 12.5px;
+  color: #75818f;
+  margin-top: 6px;
+}
+
+.credits-link {
+  color: #ff2bd6;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, #ff2bd6 40%, transparent);
+  transition: border-bottom-color 0.2s;
+}
+.credits-link:hover {
+  border-bottom-color: #ff2bd6;
+}
+
+.credits-foot {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  color: #5f6c7c;
+}
+

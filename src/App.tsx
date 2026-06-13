@@ -6,6 +6,7 @@ import { Timeline } from './timeline/Timeline';
 import { Placard } from './placard/Placard';
 import { Gallery } from './gallery/Gallery';
 import { SearchPalette } from './search/SearchPalette';
+import { Credits } from './credits/Credits';
 import { useIsBlockedDevice, DesktopGate } from './DesktopGate';
 import { MusicEngine } from './audio/ambience';
 
@@ -17,6 +18,7 @@ export default function App() {
   const [view, setView] = useState<View>({ mode: 'timeline' });
   const [placardItem, setPlacardItem] = useState<MuseumItem | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [creditsOpen, setCreditsOpen] = useState(false);
   const transitionRef = useRef<HTMLDivElement>(null);
 
   // Single music engine instance for the lifetime of the app
@@ -143,6 +145,9 @@ export default function App() {
               <button className="search-trigger" onClick={() => setSearchOpen(true)}>
                 ⌕ Search <kbd>Ctrl K</kbd>
               </button>
+              <button className="credits-trigger" onClick={() => setCreditsOpen(true)} aria-label="Credits and sources">
+                ⓘ Credits
+              </button>
               <span className={`source-badge ${data.source}`}>
                 {data.source === 'database' ? '⛁ Wikipedia-enriched archive' : '◈ curated catalog'}
               </span>
@@ -170,6 +175,8 @@ export default function App() {
           onEnterEra={enterEra}
         />
       )}
+
+      {creditsOpen && <Credits onClose={() => setCreditsOpen(false)} />}
 
       {searchOpen && (
         <SearchPalette
