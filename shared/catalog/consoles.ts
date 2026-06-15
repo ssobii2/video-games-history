@@ -978,4 +978,29 @@ export const CONSOLES: MuseumItem[] = [
       'The Deck legitimized the handheld PC as a category overnight, dragged Windows-only gaming ' +
       'toward Linux compatibility, and blurred the last line between console and computer.',
   },
+  {
+    slug: 'nintendo-switch-2',
+    kind: 'console',
+    era: 'modern-era',
+    name: 'Nintendo Switch 2',
+    wikiTitle: 'Nintendo Switch 2',
+    aliases: ['Switch 2'],
+    year: 2025,
+    maker: 'Nintendo',
+    specs: {
+      CPU: 'Octa-core ARM Cortex-A78C (Nvidia T239)',
+      GPU: 'Nvidia Ampere, 1536 CUDA cores, DLSS + ray tracing',
+      RAM: '12 GB LPDDR5X',
+      Storage: '256 GB internal',
+      Display: '1080p LCD, 120 Hz handheld; 4K/60 docked',
+      'Launch price': 'US$449.99',
+      'Units sold': '3.5 million in first 4 days (fastest-selling console launch ever)',
+    },
+    summary:
+      'The hybrid successor to the best-selling Switch: DLSS-powered graphics in handheld form, ' +
+      'backward compatible with Switch, and a launch lineup anchored by Mario Kart World.',
+    legacy:
+      'The Switch 2 became the fastest-selling gaming hardware launch of all time, mainstreaming ' +
+      'DLSS-quality handheld gaming and proving the hybrid form factor was no passing trend.',
+  },
 ];

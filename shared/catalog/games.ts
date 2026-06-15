@@ -42,7 +42,7 @@ export const GAMES: MuseumItem[] = [
     wikiTitle: 'Computer Space',
     aliases: [],
     year: 1971,
-    maker: 'Nutting Associates',
+    maker: 'Syzygy Engineering / Nutting Associates',
     specs: {
       Creators: 'Nolan Bushnell & Ted Dabney',
       Released: '1971 — the first commercial arcade video game',
@@ -635,7 +635,7 @@ export const GAMES: MuseumItem[] = [
     wikiTitle: 'Grand Theft Auto III',
     aliases: ['GTA III', 'GTA 3'],
     year: 2001,
-    maker: 'Rockstar Games / DMA Design',
+    maker: 'DMA Design / Rockstar Games',
     platform: 'playstation-2',
     specs: {
       Developer: 'DMA Design (Edinburgh)',
@@ -835,7 +835,7 @@ export const GAMES: MuseumItem[] = [
     kind: 'game',
     era: 'hd-generation',
     name: 'The Last of Us',
-    wikiTitle: 'The Last of Us',
+    wikiTitle: 'The Last of Us (video game)',
     aliases: ['TLOU'],
     year: 2013,
     maker: 'Naughty Dog',
@@ -1063,5 +1063,82 @@ export const GAMES: MuseumItem[] = [
       'BG3 detonated the assumption that depth must be niche, triggered an industry-wide ' +
       '"don’t expect this from everyone" panic among rival publishers, and revived the CRPG as a ' +
       'commercial pinnacle.',
+  },
+  {
+    slug: 'astro-bot',
+    kind: 'game',
+    era: 'modern-era',
+    name: 'Astro Bot',
+    wikiTitle: 'Astro Bot',
+    aliases: [],
+    year: 2024,
+    maker: 'Team Asobi',
+    platform: 'playstation-5',
+    specs: {
+      Director: 'Nicolas Doucet',
+      Released: '2024 (PS5)',
+      Genre: '3D platformer',
+      Awards: 'The Game Awards 2024 Game of the Year',
+      Sales: '1.5 million by November 2024',
+    },
+    summary:
+      'Team Asobi’s love letter to PlayStation history: a PS5-exclusive 3D platformer stuffed ' +
+      'with cameos from thirty years of Sony franchises, and a master class in DualSense haptic ' +
+      'design that made the controller as much a part of the experience as the game.',
+    legacy:
+      'Astro Bot’s TGA 2024 Game of the Year win — the first for a PS5-exclusive platformer — ' +
+      'proved that a pure, joyful game built around a single platform’s hardware could beat ' +
+      'sprawling open worlds on the industry’s biggest night.',
+  },
+  {
+    slug: 'final-fantasy-vii-rebirth',
+    kind: 'game',
+    era: 'modern-era',
+    name: 'Final Fantasy VII Rebirth',
+    wikiTitle: 'Final Fantasy VII Rebirth',
+    aliases: ['FF7 Rebirth', 'Final Fantasy 7 Rebirth'],
+    year: 2024,
+    maker: 'Square Enix',
+    platform: 'playstation-5',
+    specs: {
+      Directors: 'Naoki Hamaguchi / Tetsuya Nomura / Motomu Toriyama',
+      Released: '2024 (PS5), 2025 (PC)',
+      Genre: 'Action RPG',
+      Series: 'Part 2 of the FF7 Remake trilogy',
+      Awards: '7 TGA 2024 nominations (incl. Best Score)',
+    },
+    summary:
+      'The second chapter of Square Enix’s ambitious FF7 Remake trilogy opens the world beyond ' +
+      'Midgar into a vast, semi-open reimagining of the classic journey — with a score that swept ' +
+      'its own TGA category and a story that finally diverges from the original.',
+    legacy:
+      'FF7 Rebirth demonstrated that a beloved JRPG could be reborn as a multi-part modern epic ' +
+      'without losing its soul, setting the template for long-form franchise reconstruction.',
+  },
+  {
+    slug: 'clair-obscur-expedition-33',
+    kind: 'game',
+    era: 'modern-era',
+    name: 'Clair Obscur: Expedition 33',
+    wikiTitle: 'Clair Obscur: Expedition 33',
+    aliases: ['Expedition 33'],
+    year: 2025,
+    maker: 'Sandfall Interactive',
+    platform: 'playstation-5',
+    specs: {
+      Director: 'Guillaume Broche',
+      Released: '2025 (PS5, Xbox Series X/S, PC)',
+      Genre: 'Turn-based RPG with real-time action mechanics',
+      Publisher: 'Kepler Interactive',
+      Awards: 'The Game Awards 2025 Game of the Year (9 wins — most in TGA history)',
+    },
+    summary:
+      'A debut from a small French studio that arrived with no franchise pedigree and no safety ' +
+      'net, blending classic turn-based RPG structure with real-time parry and dodge mechanics ' +
+      'against a painterly Belle Époque-inspired world of death and defiance.',
+    legacy:
+      'Clair Obscur’s record nine TGA 2025 wins — most in the show’s history — made it the ' +
+      'defining indie triumph of the decade and proved that a first-time studio from France could ' +
+      'capture the Game of the Year crown on sheer creative conviction.',
   },
 ];

@@ -103,6 +103,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${result.wikiUrl ?? null}, now()
         )
         ON CONFLICT (slug) DO UPDATE SET
+          kind = EXCLUDED.kind,
+          era = EXCLUDED.era,
+          name = EXCLUDED.name,
+          wiki_title = EXCLUDED.wiki_title,
+          aliases = EXCLUDED.aliases,
+          year = EXCLUDED.year,
+          year_end = EXCLUDED.year_end,
+          maker = EXCLUDED.maker,
+          platform = EXCLUDED.platform,
           resolved_title = EXCLUDED.resolved_title,
           summary = EXCLUDED.summary,
           legacy = EXCLUDED.legacy,
