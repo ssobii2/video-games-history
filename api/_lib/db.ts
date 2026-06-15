@@ -46,6 +46,62 @@ export async function ensureSchema(sql: Sql): Promise<void> {
   `;
 }
 
+export async function ensureMetricsTable(sql: Sql): Promise<void> {
+  await sql`
+    CREATE TABLE IF NOT EXISTS item_metrics (
+      slug             TEXT PRIMARY KEY REFERENCES museum_items(slug) ON DELETE CASCADE,
+      units_sold       BIGINT,
+      units_sold_label TEXT,
+      launch_price_usd NUMERIC,
+      cpu_mhz          NUMERIC,
+      ram_bytes        BIGINT,
+      source_url       TEXT,
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `;
+}
+
+export interface MetricRow {
+  slug: string;
+  units_sold: number | null;
+  units_sold_label: string | null;
+  launch_price_usd: number | null;
+  cpu_mhz: number | null;
+  ram_bytes: number | null;
+  source_url: string | null;
+  updated_at: string;
+}
+
+/**
+ * Runs a DB operation, retrying once on Neon cold-start "fetch failed"
+ * connection errors (the serverless endpoint waking from idle suspend).
+ */
+export async function withColdStartRetry<T>(
+  fn: () => Promise<T>,
+  retries = 1,
+  delayMs = 400
+): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      const isColdStart =
+        /fetch failed|ECONNRESET|ETIMEDOUT|connect|terminating|Connection terminated/i.test(
+          msg
+        );
+      if (attempt < retries && isColdStart) {
+        await new Promise<void>((r) => setTimeout(r, delayMs));
+        continue;
+      }
+      throw lastErr;
+    }
+  }
+  throw lastErr;
+}
+
 export interface ItemRow {
   slug: string;
   kind: string;

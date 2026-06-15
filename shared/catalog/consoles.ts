@@ -72,6 +72,7 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Mattel Electronics',
     specs: {
       CPU: 'GI CP1610 @ ~895 kHz (16-bit)',
+      RAM: '1 KB',
       Resolution: '159×96, 16 colors',
       Media: 'ROM cartridges',
       'Units sold': '~3 million',
@@ -96,10 +97,12 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Coleco',
     specs: {
       CPU: 'Zilog Z80A @ 3.58 MHz',
+      RAM: '1 KB',
       VRAM: '16 KB',
       Media: 'ROM cartridges',
       'Pack-in': 'Donkey Kong',
       'Units sold': '~2 million',
+      'Launch price': 'US$175',
     },
     summary:
       'The closest thing to an arcade at home in 1982, launched with a near-perfect port of Donkey ' +
@@ -127,6 +130,7 @@ export const CONSOLES: MuseumItem[] = [
       PPU: '256×240, 54 colors',
       Media: 'ROM cartridges ("Game Paks")',
       'Units sold': '61.9 million',
+      'Launch price': 'US$179.99',
     },
     summary:
       'Launched in Japan in 1983 as the Family Computer (Famicom) and in a crash-scarred America in ' +
@@ -149,9 +153,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Sega',
     specs: {
       CPU: 'Zilog Z80A @ 3.58 MHz',
+      RAM: '8 KB',
       VDP: '256×224, 64 colors on screen',
       Media: 'Cartridges + Sega Cards',
       'Units sold': '~13 million (excl. Brazil)',
+      'Launch price': 'US$199.99',
     },
     summary:
       'Sega’s sleeker, technically stronger answer to the NES, sold in Japan as the Mark III. ' +
@@ -173,9 +179,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Atari Corporation',
     specs: {
       CPU: 'Atari SALLY (6502C) @ 1.79 MHz',
+      RAM: '4 KB',
       Graphics: 'MARIA custom chip, 320×240',
       'Backward compatibility': 'Atari 2600 cartridges',
       'Units sold': '~3.8 million',
+      'Launch price': 'US$79.95',
     },
     summary:
       'Atari’s comeback console — finished in 1984 but shelved for two years during the company’s ' +
@@ -197,9 +205,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Nintendo',
     specs: {
       CPU: 'Sharp LR35902 @ 4.19 MHz',
+      RAM: '8 KB',
       Screen: '160×144, 4 shades of "green"',
       Power: '4× AA, ~15–30 hours',
       'Units sold': '118.7 million (incl. Color)',
+      'Launch price': 'US$89.95',
     },
     summary:
       'Gunpei Yokoi’s "Lateral Thinking with Withered Technology" made flesh: a deliberately modest ' +
@@ -223,9 +233,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Sega',
     specs: {
       CPU: 'Zilog Z80 @ 3.58 MHz (Master System architecture)',
+      RAM: '8 KB',
       Screen: '3.2" backlit color LCD, 160×144',
       Power: '6× AA, ~3–5 hours',
       'Units sold': '~10.6 million',
+      'Launch price': 'US$149.99',
     },
     summary:
       'Sega took the console war portable: a backlit color screen against the Game Boy’s pea-soup ' +
@@ -252,6 +264,7 @@ export const CONSOLES: MuseumItem[] = [
       Video: '320×224, 61 colors on screen',
       Media: 'ROM cartridges',
       'Units sold': '~30.75 million',
+      'Launch price': 'US$189',
     },
     summary:
       'Known as the Mega Drive everywhere except North America, Sega’s 16-bit machine arrived two ' +
@@ -274,10 +287,12 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Nintendo',
     specs: {
       CPU: 'Ricoh 5A22 @ up to 3.58 MHz',
+      RAM: '128 KB',
       Video: 'Mode 7 rotation/scaling, 32,768-color palette',
       Audio: 'Sony S-SMP (designed by Ken Kutaragi)',
       Media: 'ROM cartridges',
       'Units sold': '49.1 million',
+      'Launch price': 'US$199.99',
     },
     summary:
       'The Super Famicom answered the Genesis with Mode 7 graphics, lush color, and a sound chip ' +
@@ -300,6 +315,7 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'NEC / Hudson Soft',
     specs: {
       CPU: 'HuC6280 (8-bit) @ 7.16 MHz',
+      RAM: '8 KB',
       Graphics: 'Dual 16-bit video chips, 482 colors on screen',
       Media: 'HuCard credit-card cartridges (+ CD-ROM add-on)',
       'Units sold': '~10 million worldwide',
@@ -324,9 +340,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'SNK',
     specs: {
       CPU: 'Motorola 68000 @ 12 MHz (+ Z80)',
+      RAM: '64 KB',
       Sprites: '380 on screen, no tile background limit',
       Media: 'Giant 330-megabit cartridges',
       'Launch price': 'US$649 (games ~$200)',
+      'Units sold': '1.18 million (1M Japan + 180K overseas)',
     },
     summary:
       'Literal arcade hardware in a home shell — SNK’s "Rolls-Royce of consoles" ran the exact same ' +
@@ -348,10 +366,13 @@ export const CONSOLES: MuseumItem[] = [
     yearEnd: 1996,
     maker: 'Atari Corporation',
     specs: {
+      CPU: 'Motorola 68000 @ 13.295 MHz (+ "Tom" + "Jerry" RISC)',
+      RAM: '2 MB',
       Architecture: 'Five processors: "Tom" + "Jerry" + 68000',
       Marketing: '"Do the Math" — 64-bit claims, widely disputed',
       Controller: '15-button keypad monster',
       'Units sold': '~250,000',
+      'Launch price': 'US$249.95',
     },
     summary:
       'Atari’s last console gambled on a bewildering five-processor design marketed as 64-bit. ' +
@@ -373,10 +394,13 @@ export const CONSOLES: MuseumItem[] = [
     yearEnd: 1996,
     maker: 'Nintendo',
     specs: {
+      CPU: 'NEC V810 @ 20 MHz',
+      RAM: '64 KB',
       Display: 'Dual red-LED eyepieces, "true 3D" stereoscopy',
       Form: 'Tabletop visor on a bipod — not actually portable',
       Warning: 'Shipped with eye-strain and headache cautions',
       'Units sold': '~770,000 — Nintendo’s biggest flop',
+      'Launch price': 'US$179.95',
     },
     summary:
       'Gunpei Yokoi’s red-and-black stereoscopic visor, rushed to market half-finished: 3D without ' +
@@ -424,9 +448,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Sega',
     specs: {
       CPU: 'Dual Hitachi SH-2 @ 28.6 MHz',
+      RAM: '2 MB',
       Architecture: 'Renders quadrilaterals, not triangles',
       Media: 'CD-ROM (2×)',
       'Units sold': '9.26 million',
+      'Launch price': 'US$399',
     },
     summary:
       'A 2D powerhouse with a notoriously hard-to-program dual-CPU design, wrong-footed by the ' +
@@ -449,10 +475,12 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Nintendo',
     specs: {
       CPU: 'NEC VR4300 @ 93.75 MHz',
+      RAM: '4 MB',
       Graphics: 'SGI Reality Co-Processor @ 62.5 MHz',
       Media: 'ROM cartridges (up to 64 MB)',
       Controller: 'First analog stick + Rumble Pak on a mainstream pad',
       'Units sold': '32.9 million',
+      'Launch price': 'US$199.99',
     },
     summary:
       'Silicon Graphics workstation technology in a kid’s console, introducing the analog stick ' +
@@ -475,10 +503,12 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Sega',
     specs: {
       CPU: 'Hitachi SH-4 @ 200 MHz',
+      RAM: '16 MB',
       GPU: 'NEC PowerVR2',
       Online: 'Built-in 56k modem — first console with stock internet',
       Media: '1.2 GB GD-ROM',
       'Units sold': '9.13 million',
+      'Launch price': 'US$199',
     },
     summary:
       'Sega’s brilliant, doomed swan song: arcade-perfect graphics, a built-in modem with real ' +
@@ -501,10 +531,12 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Sony Computer Entertainment',
     specs: {
       CPU: '"Emotion Engine" @ 294.9 MHz',
+      RAM: '32 MB',
       GPU: '"Graphics Synthesizer" @ 147.5 MHz',
       Media: 'DVD-ROM (also played DVD movies)',
       'Backward compatibility': 'Nearly the full PS1 library',
       'Units sold': '160+ million — best-selling console ever',
+      'Launch price': 'US$299',
     },
     summary:
       'The best-selling console of all time, and for millions of households also their first DVD ' +
@@ -527,9 +559,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Nintendo',
     specs: {
       CPU: 'IBM "Gekko" PowerPC @ 485 MHz',
+      RAM: '24 MB',
       GPU: 'ATI "Flipper" @ 162 MHz',
       Media: '1.46 GB miniDVD',
       'Units sold': '21.7 million',
+      'Launch price': 'US$199',
     },
     summary:
       'A purple lunchbox with a handle, developer-friendly and pound-for-pound the most efficient ' +
@@ -552,10 +586,12 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Microsoft',
     specs: {
       CPU: 'Intel Pentium III–class @ 733 MHz',
+      RAM: '64 MB',
       GPU: 'Nvidia NV2A @ 233 MHz',
       Storage: 'Built-in 8 GB hard drive — a console first',
       Online: 'Ethernet port + Xbox Live (2002)',
       'Units sold': '~24 million',
+      'Launch price': 'US$299',
     },
     summary:
       'Microsoft’s PC-architecture brute, built in a panic that the PS2 would eat the home ' +
@@ -579,9 +615,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Nintendo',
     specs: {
       CPU: 'ARM7TDMI @ 16.78 MHz',
+      RAM: '256 KB',
       Screen: '240×160 color (SP added the frontlight)',
       'Backward compatibility': 'Game Boy & Game Boy Color',
       'Units sold': '81.5 million',
+      'Launch price': 'US$99.99',
     },
     summary:
       'A Super Nintendo for your pocket while the home consoles chased polygons — the GBA was the ' +
@@ -604,10 +642,13 @@ export const CONSOLES: MuseumItem[] = [
     yearEnd: 2013,
     maker: 'Nintendo',
     specs: {
+      CPU: 'ARM946E-S @ 67 MHz (+ ARM7TDMI @ 33 MHz)',
+      RAM: '4 MB',
       Screens: 'Two — bottom one a resistive touchscreen',
       Input: 'Stylus, microphone, local wireless',
       Library: 'Nintendogs, Brain Age — new audiences entirely',
       'Units sold': '154 million — best-selling handheld ever',
+      'Launch price': 'US$149.99',
     },
     summary:
       'A "third pillar" hedge that became Nintendo’s main column: two screens, a stylus, and ' +
@@ -628,9 +669,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Sony Computer Entertainment',
     specs: {
       CPU: 'MIPS R4000 @ 333 MHz',
+      RAM: '32 MB',
       Screen: '4.3" 480×272 widescreen',
       Media: 'UMD optical discs',
       'Units sold': '~80 million',
+      'Launch price': 'US$249',
     },
     summary:
       'Console-grade 3D in your hands in 2004 — Sony’s gorgeous widescreen counterpunch to the DS, ' +
@@ -651,9 +694,12 @@ export const CONSOLES: MuseumItem[] = [
     yearEnd: 2020,
     maker: 'Nintendo',
     specs: {
+      CPU: 'Dual-core ARM11 MPCore @ 268 MHz',
+      RAM: '128 MB FCRAM',
       Display: 'Glasses-free stereoscopic 3D (slider-adjustable)',
       Launch: 'Stumbled at $249; saved by a 32% price cut in 5 months',
       'Units sold': '75.9 million',
+      'Launch price': 'US$249.99',
     },
     summary:
       'Glasses-free 3D that most players eventually switched off — but underneath the gimmick, ' +
@@ -676,10 +722,12 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Microsoft',
     specs: {
       CPU: '"Xenon" tri-core PowerPC @ 3.2 GHz',
+      RAM: '512 MB',
       GPU: 'ATI "Xenos" with unified shaders',
       Online: 'Xbox Live: achievements, marketplace, parties',
       Flaw: '"Red Ring of Death" — >$1 billion in warranty repairs',
       'Units sold': '~84 million',
+      'Launch price': 'US$299.99',
     },
     summary:
       'First out of the HD gate by a full year, the 360 defined the generation’s social fabric: ' +
@@ -702,6 +750,7 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Sony Computer Entertainment',
     specs: {
       CPU: 'Cell Broadband Engine @ 3.2 GHz (1 PPE + 7 SPEs)',
+      RAM: '256 MB XDR',
       Media: 'Blu-ray — won the format war against HD-DVD',
       'Launch price': 'US$599 ("FIVE HUNDRED AND NINETY-NINE US DOLLARS")',
       'Units sold': '87.4 million',
@@ -727,10 +776,12 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Nintendo',
     specs: {
       CPU: 'IBM "Broadway" @ 729 MHz',
+      RAM: '88 MB',
       Graphics: '480p only — no HD',
       Controller: 'Wii Remote motion pointer',
       'Pack-in': 'Wii Sports',
       'Units sold': '101.6 million',
+      'Launch price': 'US$249.99',
     },
     summary:
       'Nintendo skipped the HD arms race entirely and sold motion-controlled bowling to the whole ' +
@@ -754,9 +805,12 @@ export const CONSOLES: MuseumItem[] = [
     yearEnd: 2017,
     maker: 'Nintendo',
     specs: {
+      CPU: 'IBM PowerPC "Espresso" @ 1.24 GHz',
+      RAM: '2 GB DDR3',
       Controller: 'GamePad tablet with embedded screen',
       Confusion: 'Marketed so unclearly many thought it was a Wii accessory',
       'Units sold': '13.6 million — Nintendo’s worst home console',
+      'Launch price': 'US$299.99',
     },
     summary:
       'A tablet controller in search of a reason, a name that hid the fact it was new hardware, ' +
@@ -782,6 +836,7 @@ export const CONSOLES: MuseumItem[] = [
       RAM: '8 GB GDDR5',
       Reveal: 'Won E3 2013 by simply allowing used games',
       'Units sold': '117+ million',
+      'Launch price': 'US$399.99',
     },
     summary:
       'Sony’s great correction: ordinary x86 PC architecture, developer-first messaging, and a ' +
@@ -804,9 +859,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Microsoft',
     specs: {
       CPU: 'AMD Jaguar 8-core @ 1.75 GHz (x86-64)',
+      RAM: '8 GB DDR3',
       Reveal: 'TV-first messaging + always-online DRM (reversed)',
       Pivot: 'Game Pass subscription launched 2017',
       'Units sold': '~58 million (estimates; Microsoft stopped reporting)',
+      'Launch price': 'US$499',
     },
     summary:
       'Revealed as a TV-cable-Kinect entertainment box with used-game restrictions, and punished for ' +
@@ -826,10 +883,13 @@ export const CONSOLES: MuseumItem[] = [
     year: 2017,
     maker: 'Nintendo',
     specs: {
+      CPU: 'Nvidia Tegra X1 — ARM Cortex-A57 @ 1.02 GHz',
+      RAM: '4 GB LPDDR4',
       SoC: 'Nvidia Tegra X1 (custom)',
       Form: 'Hybrid — handheld, tabletop, docked TV',
       Controllers: 'Detachable Joy-Con pair',
       'Units sold': '150+ million',
+      'Launch price': 'US$299.99',
     },
     summary:
       'One device that is both the home console and the handheld, ending Nintendo’s dual-hardware ' +
@@ -851,10 +911,12 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Sony Interactive Entertainment',
     specs: {
       CPU: 'AMD Zen 2 8-core @ 3.5 GHz',
+      RAM: '16 GB GDDR6',
       GPU: 'RDNA 2, 10.28 TFLOPS, ray tracing',
       Storage: 'Custom NVMe SSD @ 5.5 GB/s raw',
       Controller: 'DualSense haptics + adaptive triggers',
       'Units sold': '75+ million',
+      'Launch price': 'US$499',
     },
     summary:
       'Built around an SSD so fast it changed game design — loading screens became optional — plus ' +
@@ -876,9 +938,11 @@ export const CONSOLES: MuseumItem[] = [
     maker: 'Microsoft',
     specs: {
       CPU: 'AMD Zen 2 8-core @ 3.8 GHz (Series X)',
+      RAM: '16 GB GDDR6',
       GPU: '12 TFLOPS RDNA 2 (X) / 4 TFLOPS (S)',
       Strategy: 'Two price tiers, one library, Game Pass day-one',
       'Units sold': '~30 million (estimates)',
+      'Launch price': 'US$499',
     },
     summary:
       'A tower-of-power flagship and a cheap digital-only sibling, both serving Game Pass — ' +
@@ -899,10 +963,13 @@ export const CONSOLES: MuseumItem[] = [
     year: 2022,
     maker: 'Valve',
     specs: {
+      CPU: 'AMD Zen 2 @ up to 3.5 GHz',
+      RAM: '16 GB LPDDR5',
       APU: 'AMD Zen 2 + RDNA 2 ("Aerith")',
       OS: 'SteamOS 3 (Arch Linux + Proton)',
       Library: 'The entire Steam catalog, verified per game',
       'Units sold': 'Multiple millions (Valve does not report)',
+      'Launch price': 'US$399',
     },
     summary:
       'Valve’s handheld PC: the Steam library — Elden Ring, Baldur’s Gate 3, twenty years of ' +

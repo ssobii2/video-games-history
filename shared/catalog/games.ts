@@ -249,6 +249,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'Action-adventure',
       First: 'Battery-backed save on a console cartridge',
       Inspiration: 'Miyamoto’s childhood cave exploration in Sonobe',
+      Sales: '6.5+ million',
     },
     summary:
       'A golden cartridge holding an open world: no ordered levels, just a map full of secrets and ' +
@@ -275,6 +276,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'Action-adventure (exploration)',
       Twist: 'Samus Aran revealed as a woman — a landmark 1986 surprise',
       Tone: 'Isolation, inspired by Alien',
+      Sales: '2.73 million (as of 2004)',
     },
     summary:
       'A lone bounty hunter in a hostile labyrinth where progress means earning the tools to ' +
@@ -298,6 +300,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'Action platformer',
       Structure: 'Pick your boss order; win their weapons',
       Note: 'Made as a passion project on leftover dev time',
+      Sales: '1.51 million',
     },
     summary:
       'Eight Robot Masters, tackled in any order, each surrendering a weapon that trivializes ' +
@@ -379,6 +382,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'Platformer',
       Debut: 'Yoshi',
       Secrets: '96 exits, including the hidden Star World',
+      Sales: '20.61 million',
     },
     summary:
       'The SNES launch statement: a sprawling interconnected world map riddled with secret exits, ' +
@@ -404,6 +408,7 @@ export const GAMES: MuseumItem[] = [
       Released: '1991 (Genesis/Mega Drive)',
       Genre: 'Platformer',
       Purpose: 'Mascot engineered to make Mario look slow',
+      Sales: '15 million (Genesis)',
     },
     summary:
       'Sega’s answer to Mario was attitude as physics: loops, slopes, and momentum tech showing ' +
@@ -478,6 +483,7 @@ export const GAMES: MuseumItem[] = [
       Released: '1995 (SNES)',
       Genre: 'JRPG',
       Innovation: 'New Game+ and 13 endings',
+      Sales: '~3.44 million (SNES+PS1+DS)',
     },
     summary:
       'Final Fantasy’s creator, Dragon Quest’s designer, and Dragon Ball’s artist made a ' +
@@ -505,6 +511,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'First-person shooter',
       Distribution: 'Shareware — first episode free, copied everywhere',
       Note: 'Installed on more PCs than Windows 95 (per Microsoft)',
+      Sales: '~3.5 million (PC, by 1999)',
     },
     summary:
       'id Software uploaded the first episode to a university FTP server and crashed it. Carmack’s ' +
@@ -530,6 +537,7 @@ export const GAMES: MuseumItem[] = [
       Released: '1996 (N64 launch)',
       Genre: '3D platformer',
       Innovation: 'Analog 360° movement + player-adjustable camera (Lakitu)',
+      Sales: '11.91 million',
     },
     summary:
       'The team spent months on an empty garden just making Mario feel right to move — then built ' +
@@ -556,6 +564,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'JRPG',
       Budget: '~$40M+ development — unprecedented',
       Defection: 'Left Nintendo for CD-ROM storage',
+      Sales: '9.8 million (PS1, by 2005)',
     },
     summary:
       'Square abandoned Nintendo cartridges for the storage of three CDs and spent Hollywood money ' +
@@ -582,6 +591,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'Action-adventure',
       Innovation: 'Z-targeting lock-on combat',
       Note: 'Long the highest-rated game on Metacritic (99)',
+      Sales: '7.6 million (N64)',
     },
     summary:
       'Zelda’s leap to 3D solved problems nobody had named yet — Z-targeting made 3D combat ' +
@@ -607,6 +617,7 @@ export const GAMES: MuseumItem[] = [
       Released: '1998 (PlayStation)',
       Genre: 'Stealth ("Tactical Espionage Action")',
       'Fourth wall': 'Psycho Mantis reads your memory card',
+      Sales: '6 million (by 2001)',
     },
     summary:
       'Kojima’s cinematic stealth opus: voice-acted cutscenes with real direction, a boss who ' +
@@ -631,6 +642,7 @@ export const GAMES: MuseumItem[] = [
       Released: '2001 (PlayStation 2)',
       Genre: 'Open-world action',
       Innovation: 'Fully 3D living city sandbox with radio stations',
+      Sales: '7 million (worldwide, by 2003)',
     },
     summary:
       'Liberty City turned the open world from a checklist into a place: radio chatter, ' +
@@ -656,6 +668,7 @@ export const GAMES: MuseumItem[] = [
       Released: '2001 (Xbox launch)',
       Genre: 'First-person shooter',
       Design: 'Two-weapon limit, recharging shield, "30 seconds of fun"',
+      Sales: '4 million (worldwide, by 2004)',
     },
     summary:
       'The console shooter finally done right: a two-weapon economy, recharging shields, vehicles, ' +
@@ -707,6 +720,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'First-person shooter',
       Innovation: 'Multiplayer progression — ranks, unlocks, Prestige',
       Mission: '"All Ghillied Up" — the campaign stealth benchmark',
+      Sales: '~16 million (by 2013)',
     },
     summary:
       'Call of Duty left WWII for the present day and bolted RPG progression onto multiplayer — ' +
@@ -831,6 +845,7 @@ export const GAMES: MuseumItem[] = [
       Released: '2013 (PS3, late-generation)',
       Genre: 'Action-adventure / survival',
       Performances: 'Troy Baker & Ashley Johnson, full mocap',
+      Sales: '17 million (incl. Remastered)',
     },
     summary:
       'A smuggler, a girl, and a ruined America — the PS3’s swan song fused survival mechanics ' +
@@ -934,6 +949,7 @@ export const GAMES: MuseumItem[] = [
       Released: '2017 (Switch launch)',
       Genre: 'Open-world action-adventure',
       Design: 'Chemistry engine; climb anything, approach anyhow',
+      Sales: '33.64 million (Switch)',
     },
     summary:
       'Zelda dismantled its own thirty-year formula: no ordered dungeons, no walls you can’t ' +
@@ -985,6 +1001,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'Action-adventure',
       Camera: 'Single unbroken shot, no cuts',
       Pivot: 'Greek rage to Norse fatherhood',
+      Sales: '19.5 million (by 2021)',
     },
     summary:
       'Kratos, the angriest man in games, became a grieving father teaching his son in a Norse ' +
@@ -1036,6 +1053,7 @@ export const GAMES: MuseumItem[] = [
       Genre: 'CRPG (D&D 5th Edition)',
       Scope: '~17,000 ending permutations, full VO',
       Awards: 'Swept every Game of the Year in 2023',
+      Sales: '15 million (by 2024)',
     },
     summary:
       'A Belgian studio shipped a turn-based, 100+ hour Dungeons & Dragons CRPG with full ' +

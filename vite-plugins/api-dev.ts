@@ -20,7 +20,11 @@ export function apiDevServer(): Plugin {
 
     server.middlewares.use(async (req, res, next) => {
       const url = new URL(req.url ?? '/', 'http://localhost');
-      if (url.pathname !== '/api/museum' && url.pathname !== '/api/seed') {
+      if (
+        url.pathname !== '/api/museum' &&
+        url.pathname !== '/api/seed' &&
+        url.pathname !== '/api/enrich-metrics'
+      ) {
         next();
         return;
       }
@@ -62,7 +66,11 @@ export function apiDevServer(): Plugin {
       } as unknown as import('@vercel/node').VercelResponse;
 
       const modPath =
-        url.pathname === '/api/seed' ? '/api/seed.ts' : '/api/museum.ts';
+        url.pathname === '/api/seed'
+          ? '/api/seed.ts'
+          : url.pathname === '/api/enrich-metrics'
+            ? '/api/enrich-metrics.ts'
+            : '/api/museum.ts';
 
       try {
         const mod = await server.ssrLoadModule(modPath);

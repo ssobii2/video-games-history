@@ -73,6 +73,17 @@ export interface MuseumItem {
   imageLicense?: string;
   wikiUrl?: string;
   resolvedTitle?: string;
+  /** Parsed hardware metrics, populated by the enrich-metrics pipeline. */
+  metrics?: ItemMetrics;
+}
+
+export interface ItemMetrics {
+  unitsSold?: number;
+  unitsSoldLabel?: string;
+  launchPriceUsd?: number;
+  cpuMhz?: number;
+  ramBytes?: number;
+  sourceUrl?: string;
 }
 
 export interface MuseumData {
