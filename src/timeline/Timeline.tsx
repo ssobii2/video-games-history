@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import type { Era, MuseumData, MuseumItem } from '../types';
 import { ItemArt } from '../art/ItemArt';
@@ -43,6 +43,7 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
   const rulerRef = useRef<HTMLDivElement>(null);
   const cam = useRef<Camera>({ x: 0, y: 0, s: MIN_SCALE });
   const lodRef = useRef<Lod>('eras');
+  const [, setLod] = useState<Lod>('eras');
 
   const decades = useMemo(() => {
     const out: number[] = [];
@@ -70,6 +71,7 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
         vp.classList.remove('lod-eras', 'lod-consoles', 'lod-games');
         vp.classList.add(`lod-${next}`);
       }
+      setLod(next);
     }
   };
 
