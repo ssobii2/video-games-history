@@ -7,8 +7,11 @@ import { Placard } from './placard/Placard';
 import { Gallery } from './gallery/Gallery';
 import { SearchPalette } from './search/SearchPalette';
 import { Credits } from './credits/Credits';
+import { Quiz } from './quiz/Quiz';
+import { DataPanel } from './data/DataPanel';
 import { useIsBlockedDevice, DesktopGate } from './DesktopGate';
 import { MusicEngine } from './audio/ambience';
+import { SfxEngine } from './audio/sfx';
 
 type View = { mode: 'timeline' } | { mode: 'gallery'; era: Era };
 
@@ -19,12 +22,27 @@ export default function App() {
   const [placardItem, setPlacardItem] = useState<MuseumItem | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
+  const [quizOpen, setQuizOpen] = useState(false);
+  const [dataOpen, setDataOpen] = useState(false);
   const transitionRef = useRef<HTMLDivElement>(null);
 
   // Single music engine instance for the lifetime of the app
   const musicRef = useRef<MusicEngine | null>(null);
   if (!musicRef.current) musicRef.current = new MusicEngine();
   const [muted, setMuted] = useState(() => musicRef.current!.isMuted);
+
+  // Single SFX engine instance — owns its own mute state (independent of music)
+  const sfxRef = useRef<SfxEngine>();
+  if (!sfxRef.current) sfxRef.current = new SfxEngine();
+  const [sfxMuted, setSfxMuted] = useState(() => sfxRef.current!.isMuted);
+
+  const toggleSfx = useCallback(() => {
+    setSfxMuted((m) => {
+      const next = !m;
+      sfxRef.current?.setMuted(next);
+      return next;
+    });
+  }, []);
 
   // First-gesture autoplay: browsers block audio until a user gesture
   useEffect(() => {
@@ -54,10 +72,16 @@ export default function App() {
   useEffect(() => {
     if (view.mode === 'gallery') {
       musicRef.current?.play(view.era.galleryTheme);
+      sfxRef.current?.play('poweron');
     } else {
       musicRef.current?.play('lobby');
     }
   }, [view]);
+
+  // Coin sound on every placard open (timeline, search, quiz)
+  useEffect(() => {
+    if (placardItem) sfxRef.current?.play('coin');
+  }, [placardItem]);
 
   // Stop engine on unmount
   useEffect(() => {
@@ -142,8 +166,17 @@ export default function App() {
               <button className="masthead-mute" onClick={toggleMute} aria-label={muted ? 'Unmute music' : 'Mute music'}>
                 {muted ? '🔇' : '🔊'}
               </button>
+              <button className="masthead-sfx" onClick={toggleSfx} aria-label={sfxMuted ? 'Sound effects off' : 'Sound effects on'}>
+                {sfxMuted ? '🔕' : '🔔'}
+              </button>
               <button className="search-trigger" onClick={() => setSearchOpen(true)}>
                 ⌕ Search <kbd>Ctrl K</kbd>
+              </button>
+              <button className="data-trigger" onClick={() => setDataOpen(true)} aria-label="Data and stats">
+                📊 Data
+              </button>
+              <button className="quiz-trigger" onClick={() => setQuizOpen(true)} aria-label="Trivia quiz">
+                ❓ Quiz
               </button>
               <button className="credits-trigger" onClick={() => setCreditsOpen(true)} aria-label="Credits and sources">
                 ⓘ Credits
@@ -177,6 +210,28 @@ export default function App() {
       )}
 
       {creditsOpen && <Credits onClose={() => setCreditsOpen(false)} />}
+
+      {dataOpen && data && <DataPanel items={data.items} onClose={() => setDataOpen(false)} />}
+
+      {quizOpen && data && (
+        <Quiz
+          items={data.items}
+          eras={data.eras}
+          sfx={sfxRef.current}
+          onClose={() => setQuizOpen(false)}
+          onOpenItem={(item) => {
+            setQuizOpen(false);
+            // Mirror SearchPalette onPick: step out of gallery first if needed.
+            if (view.mode === 'gallery') {
+              const era = eraOf(item);
+              transitionTo({ mode: 'timeline' }, era);
+              window.setTimeout(() => setPlacardItem(item), 900);
+            } else {
+              setPlacardItem(item);
+            }
+          }}
+        />
+      )}
 
       {searchOpen && (
         <SearchPalette

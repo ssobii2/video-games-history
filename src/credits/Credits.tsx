@@ -79,6 +79,31 @@ export function Credits({ onClose }: Props) {
         </section>
 
         <section className="credits-section">
+          <h3>Sound Effects</h3>
+          <p>
+            UI sound effects from{' '}
+            <a
+              className="credits-link"
+              href="https://kenney.nl"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Kenney ↗
+            </a>{' '}
+            (Interface Sounds) and{' '}
+            <a
+              className="credits-link"
+              href="https://opengameart.org"
+              target="_blank"
+              rel="noreferrer"
+            >
+              OpenGameArt ↗
+            </a>{' '}
+            (8-Bit Sound Effect Pack Vol. 001 by Deva), both released under CC0 / public domain.
+          </p>
+        </section>
+
+        <section className="credits-section">
           <h3>Text &amp; Images</h3>
           <p>
             Article text and images are drawn from{' '}
@@ -99,7 +124,8 @@ export function Credits({ onClose }: Props) {
             >
               CC BY-SA 4.0 ↗
             </a>
-            . Some images (box art, logos) are non-free and shown at low resolution for
+            . Sales and hardware stats are sourced from the curated game catalog and Wikidata /
+            Wikipedia. Some images (box art, logos) are non-free and shown at low resolution for
             identification. Each placard links to its original source.
           </p>
         </section>
