@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import type { Era, MuseumItem } from '../types';
 import { GalleryApp } from './GalleryApp';
 import { ItemArt } from '../art/ItemArt';
+import { Joystick } from './Joystick';
 
 interface Props {
   era: Era;
@@ -10,6 +11,7 @@ interface Props {
   onExit: () => void;
   muted: boolean;
   onToggleMute: () => void;
+  isTouch?: boolean;
 }
 
 /**
@@ -17,7 +19,7 @@ interface Props {
  * exit button, crosshair, prompt, and the inspection panel that slides in
  * when the camera finishes its glide into a display.
  */
-export function Gallery({ era, items, onExit, muted, onToggleMute }: Props) {
+export function Gallery({ era, items, onExit, muted, onToggleMute, isTouch }: Props) {
   const mountRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<GalleryApp | null>(null);
   const [inspected, setInspected] = useState<MuseumItem | null>(null);
@@ -31,7 +33,7 @@ export function Gallery({ era, items, onExit, muted, onToggleMute }: Props) {
       onInspect: (item) => setInspected(item),
       onInspectClosed: () => setInspected(null),
       onLockChange: (l) => setLocked(l),
-    });
+    }, isTouch);
     appRef.current = app;
     const onResize = () => app.resize();
     window.addEventListener('resize', onResize);
@@ -90,15 +92,25 @@ export function Gallery({ era, items, onExit, muted, onToggleMute }: Props) {
         </button>
       </header>
 
-      {/* Crosshair — visible when locked and not inspecting */}
-      {locked && !inspected && <div className="gallery-crosshair" aria-hidden="true">+</div>}
+      {/* Crosshair — visible when locked, not inspecting, and not on touch */}
+      {locked && !inspected && !isTouch && <div className="gallery-crosshair" aria-hidden="true">+</div>}
 
-      {/* Prompt — visible when NOT locked and NOT inspecting */}
-      {!locked && !inspected && (
+      {/* Prompt — desktop variant when NOT locked and NOT inspecting */}
+      {!isTouch && !locked && !inspected && (
         <div className="gallery-prompt" aria-live="polite">
           Click to look around · WASD to move · click a frame to inspect · Esc to step back
         </div>
       )}
+
+      {/* Prompt — touch hint */}
+      {isTouch && !inspected && (
+        <div className="gallery-prompt" aria-live="polite">
+          Drag to look · joystick to move · tap a frame to inspect
+        </div>
+      )}
+
+      {/* Virtual joystick — touch only, hidden during inspect */}
+      {isTouch && !inspected && <Joystick onChange={(x, y) => appRef.current?.setMoveAxis(x, y)} />}
 
       {inspected && (
         <aside className="inspect-panel" ref={panelRef}>

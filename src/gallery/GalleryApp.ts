@@ -26,6 +26,7 @@ const SPACING = 4.6;
 const EYE_Y = 1.7;
 const WALK_SPEED = 5.2;
 const SENS = 0.0022;
+const TOUCH_SENS = 0.004;
 const MARGIN = 0.6;
 
 /**
@@ -52,6 +53,13 @@ export class GalleryApp {
   private locked = false;
   private inspecting: Display | null = null;
   private transitioning = false;
+  private touchMove = { x: 0, y: 0 };
+
+  // Touch look state
+  private lookId: number | null = null;
+  private lookLast = { x: 0, y: 0 };
+  private lookDown = { x: 0, y: 0 };
+  private lookMoved = false;
   private savedPose: { pos: THREE.Vector3; yaw: number; pitch: number } | null = null;
   private flickerLights: THREE.Light[] = [];
   private baseIntensities = new Map<THREE.Light, number>();
@@ -65,7 +73,8 @@ export class GalleryApp {
     private container: HTMLElement,
     era: Era,
     items: MuseumItem[],
-    private callbacks: GalleryCallbacks
+    private callbacks: GalleryCallbacks,
+    private isTouch = false
   ) {
     this.theme = ROOM_THEMES[era.galleryTheme];
     const sorted = [...items].sort((a, b) => a.year - b.year);
@@ -334,68 +343,137 @@ export class GalleryApp {
   private bindInput(): void {
     const { signal } = this.abort;
 
-    // Pointer lock — request on click when not locked and not busy.
-    this.renderer.domElement.addEventListener(
-      'click',
-      () => {
-        if (this.inspecting || this.transitioning) return;
-        if (!this.locked) {
-          this.renderer.domElement.requestPointerLock();
-          return;
-        }
-        // Locked: raycast from screen center to inspect a frame.
-        this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
-        const all = this.displays.flatMap((d) => d.hitMeshes);
-        const hits = this.raycaster.intersectObjects(all, false);
-        if (hits.length > 0) {
-          const display = this.displays.find((d) => d.hitMeshes.includes(hits[0].object as THREE.Mesh));
-          if (display) {
-            this.enterInspect(display);
+    if (!this.isTouch) {
+      // ── Desktop: pointer-lock + WASD ──────────────────────────────────────
+
+      // Pointer lock — request on click when not locked and not busy.
+      this.renderer.domElement.addEventListener(
+        'click',
+        () => {
+          if (this.inspecting || this.transitioning) return;
+          if (!this.locked) {
+            this.renderer.domElement.requestPointerLock();
+            return;
+          }
+          // Locked: raycast from screen center to inspect a frame.
+          this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+          const all = this.displays.flatMap((d) => d.hitMeshes);
+          const hits = this.raycaster.intersectObjects(all, false);
+          if (hits.length > 0) {
+            const display = this.displays.find((d) => d.hitMeshes.includes(hits[0].object as THREE.Mesh));
+            if (display) {
+              this.enterInspect(display);
+            }
+          }
+        },
+        { signal }
+      );
+
+      // Track pointer lock state.
+      document.addEventListener(
+        'pointerlockchange',
+        () => {
+          this.locked = document.pointerLockElement === this.renderer.domElement;
+          this.callbacks.onLockChange?.(this.locked);
+        },
+        { signal }
+      );
+
+      // Mouse look — raw deltas when locked.
+      document.addEventListener(
+        'mousemove',
+        (e) => {
+          if (!this.locked || this.inspecting) return;
+          this.yaw -= e.movementX * SENS;
+          this.pitch -= e.movementY * SENS;
+          this.pitch = THREE.MathUtils.clamp(this.pitch, -1.45, 1.45);
+        },
+        { signal }
+      );
+
+      // WASD + arrow keys — track held keys.
+      const MOVE_KEYS = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']);
+      window.addEventListener(
+        'keydown',
+        (e) => {
+          const k = e.key.toLowerCase();
+          if (MOVE_KEYS.has(k)) this.keys.add(k);
+        },
+        { signal }
+      );
+      window.addEventListener(
+        'keyup',
+        (e) => {
+          this.keys.delete(e.key.toLowerCase());
+        },
+        { signal }
+      );
+    } else {
+      // ── Touch: drag-to-look + tap-to-inspect ──────────────────────────────
+
+      // Immediately activate — no pointer-lock needed.
+      this.locked = true;
+      this.callbacks.onLockChange?.(true);
+
+      this.renderer.domElement.addEventListener(
+        'pointerdown',
+        (e: PointerEvent) => {
+          if (e.pointerType === 'mouse') return;
+          // Only track one look pointer; joystick has its own element.
+          if (this.lookId !== null) return;
+          this.lookId = e.pointerId;
+          this.lookMoved = false;
+          this.lookLast = { x: e.clientX, y: e.clientY };
+          this.lookDown = { x: e.clientX, y: e.clientY };
+          try { this.renderer.domElement.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+        },
+        { signal }
+      );
+
+      this.renderer.domElement.addEventListener(
+        'pointermove',
+        (e: PointerEvent) => {
+          if (e.pointerId !== this.lookId) return;
+          if (this.inspecting || this.transitioning) return;
+          const dx = e.clientX - this.lookLast.x;
+          const dy = e.clientY - this.lookLast.y;
+          this.yaw -= dx * TOUCH_SENS;
+          this.pitch -= dy * TOUCH_SENS;
+          this.pitch = THREE.MathUtils.clamp(this.pitch, -1.45, 1.45);
+          this.lookLast = { x: e.clientX, y: e.clientY };
+          if (Math.hypot(e.clientX - this.lookDown.x, e.clientY - this.lookDown.y) > 8) {
+            this.lookMoved = true;
+          }
+        },
+        { signal }
+      );
+
+      const onTouchEnd = (e: PointerEvent) => {
+        if (e.pointerId !== this.lookId) return;
+        if (!this.lookMoved && !this.inspecting && !this.transitioning) {
+          // Tap — raycast at the tap point.
+          const rect = this.renderer.domElement.getBoundingClientRect();
+          const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          const ny = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          this.raycaster.setFromCamera(new THREE.Vector2(nx, ny), this.camera);
+          const all = this.displays.flatMap((d) => d.hitMeshes);
+          const hits = this.raycaster.intersectObjects(all, false);
+          if (hits.length > 0) {
+            const display = this.displays.find((d) => d.hitMeshes.includes(hits[0].object as THREE.Mesh));
+            if (display) this.enterInspect(display);
           }
         }
-      },
-      { signal }
-    );
+        this.lookId = null;
+      };
 
-    // Track pointer lock state.
-    document.addEventListener(
-      'pointerlockchange',
-      () => {
-        this.locked = document.pointerLockElement === this.renderer.domElement;
-        this.callbacks.onLockChange?.(this.locked);
-      },
-      { signal }
-    );
+      this.renderer.domElement.addEventListener('pointerup', onTouchEnd, { signal });
+      this.renderer.domElement.addEventListener('pointercancel', onTouchEnd, { signal });
+    }
+  }
 
-    // Mouse look — raw deltas when locked.
-    document.addEventListener(
-      'mousemove',
-      (e) => {
-        if (!this.locked || this.inspecting) return;
-        this.yaw -= e.movementX * SENS;
-        this.pitch -= e.movementY * SENS;
-        this.pitch = THREE.MathUtils.clamp(this.pitch, -1.45, 1.45);
-      },
-      { signal }
-    );
-
-    // WASD + arrow keys — track held keys.
-    const MOVE_KEYS = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']);
-    window.addEventListener(
-      'keydown',
-      (e) => {
-        const k = e.key.toLowerCase();
-        if (MOVE_KEYS.has(k)) this.keys.add(k);
-      },
-      { signal }
-    );
-    window.addEventListener(
-      'keyup',
-      (e) => {
-        this.keys.delete(e.key.toLowerCase());
-      },
-      { signal }
-    );
+  setMoveAxis(x: number, y: number): void {
+    this.touchMove.x = THREE.MathUtils.clamp(x, -1, 1);
+    this.touchMove.y = THREE.MathUtils.clamp(y, -1, 1);
   }
 
   // ── Inspection ───────────────────────────────────────────────────────────
@@ -432,7 +510,7 @@ export class GalleryApp {
         this.camera.quaternion.slerpQuaternions(startQuat, endQuat, state.t);
       },
       onComplete: () => {
-        document.exitPointerLock();
+        if (!this.isTouch) document.exitPointerLock();
         this.transitioning = false;
         this.callbacks.onInspect(display.item);
       },
@@ -470,15 +548,21 @@ export class GalleryApp {
         this.savedPose = null;
         this.transitioning = false;
         this.callbacks.onInspectClosed();
-        // Re-request pointer lock so movement resumes (browser may block it
-        // outside a user gesture — then the prompt simply reappears).
-        try {
-          const relock = this.renderer.domElement.requestPointerLock() as unknown as
-            | Promise<void>
-            | undefined;
-          relock?.catch(() => {});
-        } catch {
-          /* relock blocked — user clicks to re-enter look mode */
+        if (this.isTouch) {
+          // Touch: no pointer lock — just stay active.
+          this.locked = true;
+          this.callbacks.onLockChange?.(true);
+        } else {
+          // Re-request pointer lock so movement resumes (browser may block it
+          // outside a user gesture — then the prompt simply reappears).
+          try {
+            const relock = this.renderer.domElement.requestPointerLock() as unknown as
+              | Promise<void>
+              | undefined;
+            relock?.catch(() => {});
+          } catch {
+            /* relock blocked — user clicks to re-enter look mode */
+          }
         }
       },
     });
@@ -509,6 +593,10 @@ export class GalleryApp {
       if (this.keys.has('s') || this.keys.has('arrowdown')) move.sub(fwd);
       if (this.keys.has('d') || this.keys.has('arrowright')) move.add(right);
       if (this.keys.has('a') || this.keys.has('arrowleft')) move.sub(right);
+      if (this.touchMove.x !== 0 || this.touchMove.y !== 0) {
+        move.addScaledVector(fwd, -this.touchMove.y);
+        move.addScaledVector(right, this.touchMove.x);
+      }
       if (move.lengthSq() > 0) move.normalize();
       move.multiplyScalar(WALK_SPEED * dt);
 
