@@ -19,6 +19,7 @@ interface Props {
   data: MuseumData;
   onSelect: (item: MuseumItem) => void;
   onEnterEra: (era: Era) => void;
+  isTouch?: boolean;
 }
 
 interface Camera {
@@ -36,7 +37,7 @@ const MAX_SCALE = 2.6;
  * re-renders when the LOD bucket changes. GSAP drives all animated camera
  * moves (wheel zoom glide, double-click era dives, legend jumps).
  */
-export function Timeline({ data, onSelect, onEnterEra }: Props) {
+export function Timeline({ data, onSelect, onEnterEra, isTouch }: Props) {
   const layout = useMemo(() => computeLayout(data.eras, data.items), [data]);
   const viewportRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
@@ -188,6 +189,8 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
     let moved = 0;
     let lastX = 0;
     let lastY = 0;
+    const pointers = new Map<number, { x: number; y: number }>();
+    let pinchPrevDist = 0;
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
@@ -200,8 +203,40 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
       // retargets the compatibility mouseup to the viewport, which kills the
       // `click` event for every node inside the canvas. Capture starts only
       // once movement proves this is a drag, not a click.
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2) {
+        gsap.killTweensOf(cam.current);
+        dragging = false;
+        if (captured) {
+          captured = false;
+          vp.classList.remove('dragging');
+          try { vp.releasePointerCapture(e.pointerId); } catch { /* already released */ }
+        }
+        const pts = [...pointers.values()];
+        const a = pts[0], b = pts[1];
+        pinchPrevDist = Math.hypot(a.x - b.x, a.y - b.y);
+      }
     };
     const onPointerMove = (e: PointerEvent) => {
+      if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size >= 2) {
+        const pts = [...pointers.values()];
+        const a = pts[0], b = pts[1];
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        if (pinchPrevDist > 0 && dist > 0) {
+          const rect = vp.getBoundingClientRect();
+          const mx = (a.x + b.x) / 2 - rect.left;
+          const my = (a.y + b.y) / 2 - rect.top;
+          const { x, y, s } = cam.current;
+          const ns = clamp(s * (dist / pinchPrevDist), MIN_SCALE, MAX_SCALE);
+          cam.current.s = ns;
+          cam.current.x = mx - ((mx - x) / s) * ns;
+          cam.current.y = my - ((my - y) / s) * ns;
+          apply();
+        }
+        pinchPrevDist = dist;
+        return; // skip pan while pinching
+      }
       if (!dragging) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
@@ -218,8 +253,18 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
       apply();
     };
     const onPointerUp = (e: PointerEvent) => {
-      dragging = false;
-      if (captured) {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2) pinchPrevDist = 0;
+      if (pointers.size === 1) {
+        // One finger remains after pinch — re-seed pan so next move doesn't jump.
+        const last = [...pointers.values()][0];
+        dragging = true;
+        lastX = last.x;
+        lastY = last.y;
+      } else {
+        dragging = false;
+      }
+      if (captured && pointers.size === 0) {
         captured = false;
         vp.classList.remove('dragging');
         // Suppress the click that ends a drag gesture.
@@ -292,7 +337,7 @@ export function Timeline({ data, onSelect, onEnterEra }: Props) {
         ))}
       </nav>
 
-      <div className="hint">scroll to zoom · drag to pan · click an era to dive in</div>
+      <div className="hint">{isTouch ? 'drag to pan · pinch to zoom · tap an era to dive in' : 'scroll to zoom · drag to pan · click an era to dive in'}</div>
     </div>
   );
 }
