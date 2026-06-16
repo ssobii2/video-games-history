@@ -9,14 +9,14 @@ import { SearchPalette } from './search/SearchPalette';
 import { Credits } from './credits/Credits';
 import { Quiz } from './quiz/Quiz';
 import { DataPanel } from './data/DataPanel';
-import { useIsBlockedDevice, DesktopGate } from './DesktopGate';
+import { useDeviceState, RotateGate } from './DeviceGate';
 import { MusicEngine } from './audio/ambience';
 import { SfxEngine } from './audio/sfx';
 
 type View = { mode: 'timeline' } | { mode: 'gallery'; era: Era };
 
 export default function App() {
-  const blocked = useIsBlockedDevice();
+  const { isTouch, blockedPortrait } = useDeviceState();
   const [data, setData] = useState<MuseumData | null>(null);
   const [view, setView] = useState<View>({ mode: 'timeline' });
   const [placardItem, setPlacardItem] = useState<MuseumItem | null>(null);
@@ -141,7 +141,7 @@ export default function App() {
     if (view.mode === 'gallery') transitionTo({ mode: 'timeline' }, view.era);
   }, [view, transitionTo]);
 
-  if (blocked) return <DesktopGate />;
+  if (blockedPortrait) return <RotateGate />;
 
   if (!data) {
     return (
@@ -160,7 +160,8 @@ export default function App() {
         <>
           <header className="masthead">
             <h1>
-              The Museum of <span>Video Game History</span>
+              <span className="title-pre">The Museum of </span>
+              <span>Video Game History</span>
             </h1>
             <div className="masthead-right">
               <button className="masthead-mute" onClick={toggleMute} aria-label={muted ? 'Unmute music' : 'Mute music'}>
@@ -170,23 +171,23 @@ export default function App() {
                 {sfxMuted ? '🔕' : '🔔'}
               </button>
               <button className="search-trigger" onClick={() => setSearchOpen(true)}>
-                ⌕ Search <kbd>Ctrl K</kbd>
+                ⌕ <span className="nav-label">Search</span> <kbd>Ctrl K</kbd>
               </button>
               <button className="data-trigger" onClick={() => setDataOpen(true)} aria-label="Data and stats">
-                📊 Data
+                📊 <span className="nav-label">Data</span>
               </button>
               <button className="quiz-trigger" onClick={() => setQuizOpen(true)} aria-label="Trivia quiz">
-                ❓ Quiz
+                ❓ <span className="nav-label">Quiz</span>
               </button>
               <button className="credits-trigger" onClick={() => setCreditsOpen(true)} aria-label="Credits and sources">
-                ⓘ Credits
+                ⓘ <span className="nav-label">Credits</span>
               </button>
               <span className={`source-badge ${data.source}`}>
                 {data.source === 'database' ? '⛁ Wikipedia-enriched archive' : '◈ curated catalog'}
               </span>
             </div>
           </header>
-          <Timeline data={data} onSelect={setPlacardItem} onEnterEra={enterEra} />
+          <Timeline data={data} onSelect={setPlacardItem} onEnterEra={enterEra} isTouch={isTouch} />
         </>
       )}
 
@@ -197,6 +198,7 @@ export default function App() {
           onExit={exitToTimeline}
           muted={muted}
           onToggleMute={toggleMute}
+          isTouch={isTouch}
         />
       )}
 
